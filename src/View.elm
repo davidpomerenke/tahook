@@ -16,6 +16,7 @@ import Material.Checkbox as Checkbox
 import Material.Dialog as Dialog
 import Material.Drawer.Modal as ModalDrawer
 import Material.Elevation as Elevation
+import Material.FormField as FormField
 import Material.Icon as Icon
 import Material.IconButton as IconButton
 import Material.LayoutGrid as LayoutGrid
@@ -23,6 +24,7 @@ import Material.LinearProgress as LinearProgress
 import Material.List as List
 import Material.List.Item as ListItem
 import Material.Menu as Menu
+import Material.Radio as Radio
 import Material.Switch as Switch
 import Material.TextField as TextField
 import Material.TextField.Icon as TextFieldIcon
@@ -31,6 +33,7 @@ import Material.TopAppBar as TopAppBar
 import Material.Typography as Typography
 import Maybe
 import Maybe.Extra as Maybe
+import Shared exposing (..)
 import Types exposing (..)
 
 
@@ -128,15 +131,13 @@ roleSelection model =
                     ]
                 , actions = Nothing
                 }
-            , el [ centerX ]
-                (html
-                    (Button.text
-                        (Button.config
-                            |> Button.setHref (Just "https://github.com/davidpomerenke/tahook")
-                            |> Button.setTarget (Just "_blank")
-                        )
-                        "About"
+            , htmlCenter
+                (Button.text
+                    (Button.config
+                        |> Button.setHref (Just "https://github.com/davidpomerenke/tahook")
+                        |> Button.setTarget (Just "_blank")
                     )
+                    "About"
                 )
             ]
         )
@@ -210,8 +211,9 @@ app model =
                 [ TopAppBar.fixedAdjust, fillWidth ]
                 [ layout
                     [ Element.width fill
-                    , padding 50
+                    , padding 20
                     , spacing 50
+                    , Font.size 16
                     ]
                     (el [ centerX, Element.width (fill |> maximum 800) ] (content model))
                 ]
@@ -263,7 +265,7 @@ content model =
                         ]
 
                 _ ->
-                    Element.text "In a future version it will be possible for guests to contribute questions."
+                    paragraph [] [ Element.text "In a future version it will be possible for guests to contribute questions." ]
 
         ChatPage ->
             column [ Element.width fill ]
@@ -301,26 +303,6 @@ content model =
                 ]
 
 
-deadQuestion text answer =
-    Card.card Card.config
-        { blocks =
-            [ Card.block
-                (div []
-                    [ p [ style "margin" "30px" ] [ Html.text text ]
-                    , TextField.filled
-                        (TextField.config
-                            |> TextField.setValue (Just answer)
-                            |> TextField.setFullwidth True
-                            |> TextField.setDisabled True
-                            |> TextField.setAttributes [ style "padding" "0px 30px" ]
-                        )
-                    ]
-                )
-            ]
-        , actions = Nothing
-        }
-
-
 quizView model =
     column [ Element.width fill, spacing 100 ]
         [ case ( model.role, model.quiz ) of
@@ -331,37 +313,34 @@ quizView model =
                         , el [ Font.bold ] (Element.text model.name)
                         , Element.text "!"
                         ]
-                    , el [ centerX ]
-                        (html
-                            (div []
-                                [ Button.raised
-                                    (Button.config
-                                        |> Button.setOnClick NextQuestionClick
-                                    )
-                                    "Start quiz!"
-                                ]
-                            )
+                    , htmlCenter
+                        (div []
+                            [ Button.raised
+                                (Button.config
+                                    |> Button.setOnClick NextQuestionClick
+                                )
+                                "Start quiz!"
+                            ]
                         )
                     ]
 
             ( Host _ _, Question _ _ ) ->
                 none
 
-            -- Rating allocation ->
-            --     div []
-            --         [ text "Rating is happening. "
-            --         , text (Debug.toString hM.quiz)
-            --         ]
-            ( Host _ _, Paused ) ->
-                el [ centerX ]
-                    (html
+            ( Host _ _, Rating _ _ ) ->
+                column [ Element.width fill, spacing 50 ]
+                    [ Element.text "Peer grading is taking place."
+                    , htmlCenter
                         (Button.raised
                             (Button.config
                                 |> Button.setOnClick NextQuestionClick
                             )
                             "Next question!"
                         )
-                    )
+                    ]
+
+            ( Host _ _, Loading _ ) ->
+                Element.text "Loading"
 
             ( Host _ _, Finished ) ->
                 none
@@ -371,29 +350,44 @@ quizView model =
         , el [ centerX, Element.width fill ]
             (case model.quiz of
                 NotStarted ->
-                    Element.text "Waiting for the host to start the quiz."
+                    paragraph [] [ Element.text "Waiting for the host to start the quiz." ]
 
                 Question due q ->
                     model.time
-                        |> Maybe.map (\time -> el [ Element.width fill ] (html (questionCard time due q model)))
+                        |> Maybe.map (\time -> htmlFill (questionCard (due - time) q model))
                         |> Maybe.withDefault none
 
-                Paused ->
-                    Element.text "At this stage, peer grading would take place. This is not implemented yet."
+                Loading q ->
+                    column [ Element.width fill, spacing 50 ]
+                        [ htmlFill (questionCard 0 q model)
+                        , paragraph [] [ Element.text "Waiting for the peer grading to start." ]
+                        ]
+
+                Rating q peerAnswers ->
+                    column [ Element.width fill, spacing 50 ]
+                        ((case model.role of
+                            Guest _ ->
+                                htmlFill (questionCard 0 q model)
+
+                            _ ->
+                                none
+                         )
+                            :: List.map (\a -> htmlFill (ratingCard a q)) (Dict.toList peerAnswers)
+                        )
 
                 Finished ->
-                    Element.text "The quiz has finished, and the winner(s) will be shown here once peer grading is implemented."
+                    paragraph [] [ Element.text "The quiz has finished, and the winner(s) will be shown here once this feature is implemented." ]
             )
         , case model.role of
-            Host h _ ->
+            Host history _ ->
                 column [ Element.width fill, spacing 50 ]
-                    (List.map
-                        (\( question, { answers } ) ->
-                            el [ Element.width fill ] (html (historyCard question answers))
-                        )
-                        (List.sortBy (\( _, { order } ) -> order)
-                            (Dict.toList h)
-                        )
+                    (case List.sortBy (\( _, { order } ) -> -order) (Dict.toList history) of
+                        h :: t ->
+                            htmlFill (historyCard [ Elevation.z8 ] h)
+                                :: List.map (\a -> htmlFill (historyCard [ Elevation.z4 ] a)) t
+
+                        _ ->
+                            []
                     )
 
             _ ->
@@ -401,20 +395,32 @@ quizView model =
         ]
 
 
-historyCard question answers =
+htmlFill a =
+    el [ Element.width fill ] (html a)
+
+
+htmlCenter a =
+    el [ centerX ] (html a)
+
+
+historyCard attrs ( question, { answers } ) =
     Card.card
         (Card.config
-            |> Card.setAttributes [ fillWidth, Elevation.z4 ]
+            |> Card.setAttributes (fillWidth :: attrs)
         )
         { blocks =
             [ Card.block
                 (div [ style "margin" "30px" ]
                     [ Html.text question
-                    , case Dict.toList answers of
+                    , let
+                        nAnswers =
+                            Dict.size answers
+                      in
+                      case Dict.toList answers of
                         h :: t ->
                             List.list List.config
-                                (toListItem h)
-                                (List.map toListItem t)
+                                (historyListItem nAnswers h)
+                                (List.map (historyListItem nAnswers) t)
 
                         _ ->
                             Html.text ""
@@ -425,20 +431,50 @@ historyCard question answers =
         }
 
 
-questionCard time due q model =
+historyListItem nAnswers ( name, { answer, ratings } ) =
+    ListItem.listItem ListItem.config
+        [ ListItem.text []
+            { primary = [ Html.text answer ]
+            , secondary = [ Html.text name ]
+            }
+        , ListItem.meta []
+            (List.map
+                (\( _, r ) ->
+                    Icon.icon []
+                        (case r of
+                            0 ->
+                                "sentiment_very_dissatisfied"
+
+                            2 ->
+                                "sentiment_satisfied_alt"
+
+                            _ ->
+                                "sentiment_neutral"
+                        )
+                )
+                (Dict.toList ratings)
+                ++ List.repeat (nGraders nAnswers - Dict.size ratings)
+                    (Icon.icon [] "radio_button_unchecked")
+            )
+        ]
+
+
+questionCard progress q model =
     Card.card
-        (Card.config
-            |> Card.setAttributes [ fillWidth, Elevation.z8 ]
-        )
+        (Card.config |> Card.setAttributes [ fillWidth, Elevation.z8 ])
         { blocks =
             [ Card.block
                 (div [ onClick AnswerFocused ]
                     [ let
-                        progress =
-                            toFloat (Basics.max 0 (due - time)) / questionDuration
+                        progress_ =
+                            toFloat (Basics.max 0 progress) / questionDuration
                       in
-                      LinearProgress.buffered LinearProgress.config
-                        { progress = progress, buffered = 1 }
+                      div
+                        [ style "background-color" "blue"
+                        , style "height" "3px"
+                        , style "width" (String.fromFloat (100 * progress_) ++ "%")
+                        ]
+                        []
                     , div [ style "margin" "30px" ] [ Html.text q ]
                     , case model.role of
                         Guest _ ->
@@ -449,6 +485,14 @@ questionCard time due q model =
                                     |> TextField.setFullwidth True
                                     |> TextField.setAttributes [ style "padding" "0px 30px", id "answer-field" ]
                                     |> TextField.setPlaceholder (Just "Type your answer here ...")
+                                    |> TextField.setDisabled
+                                        (case model.quiz of
+                                            Question _ _ ->
+                                                False
+
+                                            _ ->
+                                                True
+                                        )
                                 )
 
                         _ ->
@@ -460,28 +504,52 @@ questionCard time due q model =
         }
 
 
+questionToListItem a =
+    ListItem.listItem ListItem.config
+        [ Html.text a
+        , ListItem.meta [ onClick (QuestionRemoved a) ] [ Icon.icon [] "remove_circle_outline" ]
+        ]
+
+
+ratingCard ( peer, { answer, rating } ) q =
+    Card.card
+        (Card.config |> Card.setAttributes [ fillWidth, Elevation.z4 ])
+        { blocks =
+            [ Card.block
+                (div [ style "margin" "30px" ]
+                    [ Html.text answer
+                    , div [ style "justify-content" "space-between" ]
+                        [ ratingRadio q peer rating 0 "Not really"
+                        , ratingRadio q peer rating 1 "Kind of"
+                        , ratingRadio q peer rating 2 "Yes exactly"
+                        ]
+                    ]
+                )
+            ]
+        , actions = Nothing
+        }
+
+
+ratingRadio q peer rating number label =
+    FormField.formField
+        (FormField.config
+            |> FormField.setLabel (Just label)
+            |> FormField.setOnClick (Rated number peer q)
+        )
+        [ Radio.radio
+            (Radio.config
+                |> Radio.setOnChange (Rated number peer q)
+                |> Radio.setChecked (rating == Just number)
+            )
+        ]
+
+
 chatToListItem item =
     ListItem.listItem ListItem.config
         [ ListItem.text []
             { primary = [ Html.text item.content ]
             , secondary = [ Html.text item.name ]
             }
-        ]
-
-
-toListItem ( name, answer ) =
-    ListItem.listItem ListItem.config
-        [ ListItem.text []
-            { primary = [ Html.text answer ]
-            , secondary = [ Html.text name ]
-            }
-        ]
-
-
-questionToListItem a =
-    ListItem.listItem ListItem.config
-        [ Html.text a
-        , ListItem.meta [ onClick (QuestionRemoved a) ] [ Icon.icon [] "remove_circle_outline" ]
         ]
 
 

@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Browser.Dom as Dom
+import Browser.Events
 import Dict
 import Html exposing (Html)
 import Json.Decode as D exposing (decodeValue)
@@ -46,13 +47,11 @@ subscriptions model =
         (fromPeer (\{ peer, value } -> FromPeer peer value)
             :: (case model.quiz of
                     Question _ _ ->
-                        [ Time.every tickFrequency (\posix -> Tick (Time.posixToMillis posix)) ]
+                        [ Browser.Events.onAnimationFrame
+                            (\posix -> Tick (Time.posixToMillis posix))
+                        ]
 
                     _ ->
                         []
                )
         )
-
-
-tickFrequency =
-    100

@@ -1,13 +1,18 @@
 module Update exposing (..)
 
 import Browser.Dom as Dom
-import Dict
+import Dict exposing (Dict)
+import Dict.Extra as Dict
 import Json.Decode as D
 import Json.Encode as E
 import List.Extra as List
 import Ports exposing (..)
 import Process
+import Random
+import Random.Extra as Random
+import Random.List
 import Set
+import Shared exposing (..)
 import Task
 import Time
 import Types exposing (..)
@@ -33,11 +38,36 @@ update msg model =
                 ( Host h guests, Ok (QuestionAnswered q a) ) ->
                     ( { model | role = Host (updateHistory peer q a h) guests }, Cmd.none )
 
-                ( Guest _, Ok (StartQuestion due q) ) ->
-                    ( { model | quiz = Question due q }
-                    , Process.sleep 100
-                        |> Task.andThen (\_ -> Dom.focus "answer-field")
-                        |> Task.attempt (\_ -> NoOp)
+                ( _, Ok (StartQuestion q) ) ->
+                    ( model
+                    , Task.perform (\t -> QuestionStarted (Time.posixToMillis t + questionDuration) q) Time.now
+                    )
+
+                ( Guest _, Ok (RatingStarted q peerAnswers) ) ->
+                    ( { model | quiz = Rating q (Dict.map (\_ a -> { answer = a, rating = Nothing }) peerAnswers) }
+                    , Cmd.none
+                    )
+
+                ( Host h guests, Ok (RatingSent rating p question) ) ->
+                    ( { model
+                        | role =
+                            Host
+                                (Dict.update question
+                                    (Maybe.map
+                                        (\a ->
+                                            { a
+                                                | answers =
+                                                    Dict.update p
+                                                        (Maybe.map (\b -> { b | ratings = Dict.insert peer rating b.ratings }))
+                                                        a.answers
+                                            }
+                                        )
+                                    )
+                                    h
+                                )
+                                guests
+                      }
+                    , Cmd.none
                     )
 
                 ( NotSelected, Ok JoinConfirmed ) ->
@@ -95,9 +125,6 @@ update msg model =
             ( { model | page = HomePage, drawerShown = False }, Cmd.none )
 
         NextQuestionClick ->
-            ( model, Task.perform (\t -> NextQuestionStart (Time.posixToMillis t)) Time.now )
-
-        NextQuestionStart time ->
             case model.role of
                 Host history guests ->
                     let
@@ -105,22 +132,19 @@ update msg model =
                             model.questions
                                 |> List.filterNot (\a -> Dict.member a history)
                                 |> List.head
-
-                        due =
-                            time + questionDuration
                     in
                     case nextQuestion of
                         Just q ->
-                            ( { model | quiz = Question due q }
+                            ( model
                             , Cmd.batch
                                 (List.map
                                     (\guest ->
                                         toPeer
                                             { peer = guest
-                                            , value = encodeTypesPeerMsg (StartQuestion due q)
+                                            , value = encodeTypesPeerMsg (StartQuestion q)
                                             }
                                     )
-                                    guests
+                                    (model.name :: guests)
                                 )
                             )
 
@@ -130,30 +154,89 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        QuestionStarted due question ->
+            ( { model
+                | quiz = Question due question
+                , typedAnswer = ""
+              }
+            , Process.sleep 100
+                |> Task.andThen (\_ -> Dom.focus "answer-field")
+                |> Task.attempt (\_ -> NoOp)
+            )
+
         Tick time ->
             case model.quiz of
                 Question due q ->
                     if time >= due then
-                        ( { model
-                            | quiz = Paused
-                            , typedAnswer = ""
-                          }
-                        , case model.role of
+                        case model.role of
                             Guest host ->
-                                toPeer
-                                    { peer = host
-                                    , value = encodeTypesPeerMsg (QuestionAnswered q model.typedAnswer)
-                                    }
+                                ( { model | quiz = Loading q }
+                                , if model.typedAnswer == "" then
+                                    Cmd.none
+
+                                  else
+                                    toPeer
+                                        { peer = host
+                                        , value = encodeTypesPeerMsg (QuestionAnswered q model.typedAnswer)
+                                        }
+                                )
+
+                            Host h guests ->
+                                ( { model
+                                    | quiz = Loading q
+                                    , role =
+                                        Host
+                                            (case Dict.get q h of
+                                                Nothing ->
+                                                    Dict.insert q { order = Dict.size h, answers = Dict.empty } h
+
+                                                Just _ ->
+                                                    h
+                                            )
+                                            guests
+                                  }
+                                , Process.sleep 1000 |> Task.attempt (\_ -> AnswerCollectionEnded q)
+                                )
 
                             _ ->
-                                Cmd.none
-                        )
+                                ( model, Cmd.none )
 
                     else
                         ( { model | time = Just time }, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
+
+        AnswerCollectionEnded q ->
+            case model.role of
+                Host h _ ->
+                    ( model
+                    , let
+                        answers : Dict Peer Answer
+                        answers =
+                            Dict.get q h
+                                |> Maybe.map (.answers >> Dict.map (\_ v -> v.answer))
+                                |> Maybe.withDefault Dict.empty
+                      in
+                      Random.generate (RatingAllocated q) (allocation answers)
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        RatingAllocated q allocation_ ->
+            ( { model | quiz = Rating q Dict.empty }
+            , Cmd.batch
+                (List.map
+                    (\( peer, answers ) ->
+                        toPeer
+                            { peer = peer
+                            , value = encodeTypesPeerMsg (RatingStarted q answers)
+                            }
+                    )
+                    (Dict.toList allocation_)
+                )
+            )
 
         AnswerFocused ->
             ( model
@@ -162,6 +245,24 @@ update msg model =
 
         AnswerTyped a ->
             ( { model | typedAnswer = a }, Cmd.none )
+
+        Rated rating peer question ->
+            ( { model
+                | quiz =
+                    case model.quiz of
+                        Rating q rs ->
+                            Rating q (Dict.update peer (Maybe.map (\a -> { a | rating = Just rating })) rs)
+
+                        _ ->
+                            model.quiz
+              }
+            , case model.role of
+                Guest host ->
+                    toPeer { peer = host, value = encodeTypesPeerMsg (RatingSent rating peer question) }
+
+                _ ->
+                    Cmd.none
+            )
 
         ShowQuestions ->
             ( { model | page = QuestionsPage, drawerShown = False }, Cmd.none )
@@ -172,7 +273,7 @@ update msg model =
         QuestionSubmitted ->
             ( { model
                 | typedQuestion = ""
-                , questions = model.typedQuestion :: model.questions
+                , questions = model.questions ++ [ model.typedQuestion ]
               }
             , Cmd.none
             )
@@ -214,13 +315,56 @@ updateHistory peer q a h =
                 Nothing ->
                     Just
                         { order = Dict.size h
-                        , answers = Dict.singleton peer a
+                        , answers = Dict.singleton peer { answer = a, ratings = Dict.empty }
                         }
 
                 Just { order, answers } ->
                     Just
                         { order = order
-                        , answers = Dict.insert peer a answers
+                        , answers = Dict.insert peer { answer = a, ratings = Dict.empty } answers
                         }
         )
         h
+
+
+{-| Allocates to every peer and their answer three random other peers to do the peer grading.
+(If there are less than three other peers, fewer peers will be allocated.)
+The result is a dictionary where every peer is associated with the peers and answers that they should grade.
+-}
+allocation : Dict Peer Answer -> Random.Generator (Dict Peer (Dict Peer Answer))
+allocation answers =
+    let
+        otherPeers peer =
+            List.remove peer (Dict.keys answers)
+
+        peersAndGraders : Random.Generator (List ( Peer, Peer, Answer ))
+        peersAndGraders =
+            Dict.toList answers
+                |> Random.traverse
+                    (\( gradedPeer, answer ) ->
+                        otherPeers gradedPeer
+                            |> randomChoices (nGraders (Dict.size answers))
+                            |> Random.map (List.map (\gradingPeer -> ( gradingPeer, gradedPeer, answer )))
+                    )
+                |> Random.map List.concat
+    in
+    Random.map nestedDict peersAndGraders
+
+
+{-| Choose k elements without replacement.
+-}
+randomChoices k =
+    Random.List.choices k >> Random.map Tuple.first
+
+
+nestedDict : List ( comparable1, comparable2, v ) -> Dict comparable1 (Dict comparable2 v)
+nestedDict =
+    Dict.groupBy first >> Dict.map (\_ -> List.map dropFirst >> Dict.fromList)
+
+
+first ( a, _, _ ) =
+    a
+
+
+dropFirst ( _, a, b ) =
+    ( a, b )

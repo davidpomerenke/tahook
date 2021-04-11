@@ -4,10 +4,10 @@ clean:
 	rm -r public/assets/; rm public/bundle.js; rm public/elm.js
 
 src/Types/Auto.elm: src/Types.elm
-	WATCHING=false elm-auto-encoder-decoder src/Types.elm
+	WATCHING=false npx elm-auto-encoder-decoder src/Types.elm
 
 public/elm.js: src/*.elm src/Types/Auto.elm
-	npx elm make src/Main.elm --output public/elm.js
+	npx elm make src/Main.elm --output public/elm.js --debug
 
 public/bundle.js: src/main.js node_modules
 	npx browserify src/main.js -o public/bundle.js --debug
@@ -31,3 +31,10 @@ js-live:
 
 live:
 	make elm-live & make js-live --silent
+
+testdeploy:
+	npx surge public tahook.surge.sh
+
+deploy:
+	npx elm make src/Main.elm --output public/elm.js --optimize
+	npx netlify deploy --prod

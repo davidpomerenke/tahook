@@ -20,8 +20,10 @@ type alias Answer =
 type PeerMsg
     = Joined
     | JoinConfirmed
-    | StartQuestion Time String
+    | StartQuestion String
     | QuestionAnswered Question Answer
+    | RatingStarted Question (Dict Peer Answer)
+    | RatingSent Rating Peer Question
     | ChatSent String
     | ChatForwarded Peer String
     | Disconnected
@@ -37,8 +39,10 @@ type Msg
     | ShowDrawer
     | HideDrawer
     | ShowHome
+    | QuestionStarted Int Question
     | AnswerFocused
     | AnswerTyped String
+    | Rated Rating Peer Question
     | ShowChat
     | ChatTyped String
     | ChatSubmitted
@@ -47,9 +51,14 @@ type Msg
     | QuestionSubmitted
     | QuestionRemoved String
     | NextQuestionClick
-    | NextQuestionStart Int
+    | AnswerCollectionEnded Question
+    | RatingAllocated Question RatingInfo
     | Tick Int
     | NoOp
+
+
+type alias RatingInfo =
+    Dict Peer (Dict Peer Answer)
 
 
 type Page
@@ -74,8 +83,18 @@ type alias QuizHistory =
 
 type alias QuizHistoryItem =
     { order : Int
-    , answers : Dict Peer Answer
+    , answers : Dict Peer AnswerItem
     }
+
+
+type alias AnswerItem =
+    { answer : Answer
+    , ratings : Dict Peer Rating
+    }
+
+
+type alias Rating =
+    Int
 
 
 type alias Time =
@@ -84,9 +103,16 @@ type alias Time =
 
 type QuizState
     = NotStarted
-    | Question Time String
-    | Paused
+    | Question Time Question
+    | Loading Question
+    | Rating Question (Dict Peer RatingItem)
     | Finished
+
+
+type alias RatingItem =
+    { answer : Answer
+    , rating : Maybe Rating
+    }
 
 
 type alias Model =
@@ -117,9 +143,9 @@ init name =
       , quiz = NotStarted
       , typedQuestion = ""
       , questions =
-            [ "a?"
-            , "b?"
-            , "c?"
+            [ "First question?"
+            , "Second question?"
+            , "Third question?"
             ]
       , chat = []
       , typedChat = ""
@@ -130,8 +156,7 @@ init name =
     )
 
 
-questionDuration =
-    10000
+
 
 
 type alias ChatMessage =

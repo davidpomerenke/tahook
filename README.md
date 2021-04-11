@@ -6,7 +6,7 @@ Tahook is a fun and competitive quiz app like [Kahoot](https://kahoot.com/). At 
 
 - [x] __Tahook uses open-ended questions.__ There is no guessing or shallow knowledge testing. Instead, Tahook requires the participants to actively retrieve answers from memory. [This is known to be effective from spaced repetition systems.](https://andymatuschak.org/prompts/) Moreover, it extends the answer format from dull multiple-choice to creative micro-essays.
 
-- [ ] __Tahook leverages peer feedback.__ The free-text answers are evaluated by multiple random peers after the quiz host or a participant has provided an explanation. This gives responsibility to the participants, and it makes it possible to retain the competitive character of the game. (In a future version, participants may receive bonus points for consistently grading others.)
+- [x] __Tahook leverages peer feedback.__ The free-text answers are evaluated by multiple random peers after the quiz host or a participant has provided an explanation. This gives responsibility to the participants, and it makes it possible to retain the competitive character of the game. (In a future version, participants may receive bonus points for consistently grading others.)
 
 - [ ] __Tahook encourages audience contributions.__ Quiz questions can be created by both the quiz host and by the participants. Participants have an incentive to contribute questions: either if they are genuinely interested in an answer they don't know yet; or if they want to gain a competitive advantage with a question whose answer they already know.
 
