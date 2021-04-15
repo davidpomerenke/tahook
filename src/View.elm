@@ -26,6 +26,7 @@ import Material.List.Item as ListItem
 import Material.Menu as Menu
 import Material.Radio as Radio
 import Material.Switch as Switch
+import Material.TextArea as TextArea
 import Material.TextField as TextField
 import Material.TextField.Icon as TextFieldIcon
 import Material.Theme as Theme
@@ -342,7 +343,7 @@ quizView model =
             ( Host _ _, Loading _ ) ->
                 Element.text "Loading"
 
-            ( Host _ _, Finished ) ->
+            ( Host _ _, Finished _ _ ) ->
                 none
 
             _ ->
@@ -354,20 +355,20 @@ quizView model =
 
                 Question due q ->
                     model.time
-                        |> Maybe.map (\time -> htmlFill (questionCard (due - time) q model))
+                        |> Maybe.map (\time -> htmlFill (questionCard (due - time) q Nothing model))
                         |> Maybe.withDefault none
 
                 Loading q ->
                     column [ Element.width fill, spacing 50 ]
-                        [ htmlFill (questionCard 0 q model)
-                        , paragraph [] [ Element.text "Waiting for the peer grading to start." ]
+                        [ htmlFill (questionCard 0 q Nothing model)
+                        , paragraph [] [ Element.text "Waiting for the peer grading to start. (If you did not attempt to answer this question, then you will also skip the grading for this question.)" ]
                         ]
 
                 Rating q peerAnswers ->
                     column [ Element.width fill, spacing 50 ]
                         ((case model.role of
                             Guest _ ->
-                                htmlFill (questionCard 0 q model)
+                                htmlFill (questionCard 0 q Nothing model)
 
                             _ ->
                                 none
@@ -375,8 +376,21 @@ quizView model =
                             :: List.map (\a -> htmlFill (ratingCard a q)) (Dict.toList peerAnswers)
                         )
 
-                Finished ->
-                    paragraph [] [ Element.text "The quiz has finished, and the winner(s) will be shown here once this feature is implemented." ]
+                Feedback q leaderboard rating ->
+                    column [ Element.width fill, spacing 50 ]
+                        [ htmlFill (questionCard 0 q (Just rating) model)
+                        , htmlCenter (Button.raised Button.config ("+" ++ String.fromInt (rating * 100)))
+                        , leaderboardList model leaderboard
+                        ]
+
+                Finished leaderboard msg ->
+                    column [ Element.width fill, spacing 50 ]
+                        [ paragraph []
+                            [ Element.text ("Congratulations, " ++ model.name ++ "!")
+                            , Element.text (Maybe.withDefault "" msg)
+                            ]
+                        , leaderboardList model leaderboard
+                        ]
             )
         , case model.role of
             Host history _ ->
@@ -459,7 +473,7 @@ historyListItem nAnswers ( name, { answer, ratings } ) =
         ]
 
 
-questionCard progress q model =
+questionCard progress q rating model =
     Card.card
         (Card.config |> Card.setAttributes [ fillWidth, Elevation.z8 ])
         { blocks =
@@ -478,22 +492,24 @@ questionCard progress q model =
                     , div [ style "margin" "30px" ] [ Html.text q ]
                     , case model.role of
                         Guest _ ->
-                            TextField.filled
-                                (TextField.config
-                                    |> TextField.setValue (Just model.typedAnswer)
-                                    |> TextField.setOnInput AnswerTyped
-                                    |> TextField.setFullwidth True
-                                    |> TextField.setAttributes [ style "padding" "0px 30px", id "answer-field" ]
-                                    |> TextField.setPlaceholder (Just "Type your answer here ...")
-                                    |> TextField.setDisabled
-                                        (case model.quiz of
-                                            Question _ _ ->
-                                                False
+                            div []
+                                [ TextField.filled
+                                    (TextField.config
+                                        |> TextField.setValue (Just model.typedAnswer)
+                                        |> TextField.setOnInput AnswerTyped
+                                        |> TextField.setFullwidth True
+                                        |> TextField.setAttributes [ style "padding" "0px 30px", id "answer-field" ]
+                                        |> TextField.setPlaceholder (Just "Type your answer here ...")
+                                        |> TextField.setDisabled
+                                            (case model.quiz of
+                                                Question _ _ ->
+                                                    False
 
-                                            _ ->
-                                                True
-                                        )
-                                )
+                                                _ ->
+                                                    True
+                                            )
+                                    )
+                                ]
 
                         _ ->
                             Html.text ""
@@ -562,3 +578,48 @@ nameToListItem ( id, name ) =
             , secondary = [ Html.text id ]
             }
         ]
+
+
+leaderboardList model leaderboard =
+    case
+        leaderboard
+            |> Dict.toList
+            |> List.sortBy (\( _, a ) -> -1 * a)
+            |> List.map (rankToListItem model)
+    of
+        h :: t ->
+            htmlFill
+                (Card.card
+                    (Card.config |> Card.setAttributes [ fillWidth, Elevation.z4 ])
+                    { blocks =
+                        [ Card.block (div [ style "margin" "30px" ] [ Html.text "Leaderboard" ])
+                        , Card.block (List.list List.config h t)
+                        ]
+                    , actions = Nothing
+                    }
+                )
+
+        _ ->
+            none
+
+
+rankToListItem : Model -> ( Peer, Int ) -> ListItem.ListItem msg
+rankToListItem model ( peer, score ) =
+    ListItem.listItem ListItem.config
+        (let
+            stdattr =
+                [ style "margin" "30px"
+                , style "width" "100%"
+                ]
+
+            attr =
+                if peer == model.name then
+                    style "font-weight" "bold" :: stdattr
+
+                else
+                    stdattr
+         in
+         [ div attr [ Html.text peer ]
+         , ListItem.meta attr [ Html.text (String.fromInt (score * 100)) ]
+         ]
+        )

@@ -219,6 +219,13 @@ encodeTypesGuest value =
 
 
 
+{-| TypeAliasDef (AliasCustomType (TypeName "Types.Leaderboard" []) (CustomTypeConstructor (TitleCaseDotPhrase "Dict.Dict") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Int") []])) -}
+encodeTypesLeaderboard : Types.Leaderboard -> Json.Encode.Value
+encodeTypesLeaderboard value =
+    (encodeDictDict (encodeTypesPeer) (encodeInt)) value
+
+
+
 {-| TypeAliasDef (AliasRecordType (TypeName "Types.Model" []) [CustomField (FieldName "name") (CustomTypeConstructor (TitleCaseDotPhrase "String") []),CustomField (FieldName "typedHost") (CustomTypeConstructor (TitleCaseDotPhrase "Maybe") [CustomTypeConstructor (TitleCaseDotPhrase "String") []]),CustomField (FieldName "role") (CustomTypeConstructor (TitleCaseDotPhrase "Types.Role") []),CustomField (FieldName "drawerShown") (CustomTypeConstructor (TitleCaseDotPhrase "Bool") []),CustomField (FieldName "page") (CustomTypeConstructor (TitleCaseDotPhrase "Types.Page") []),CustomField (FieldName "quiz") (CustomTypeConstructor (TitleCaseDotPhrase "Types.QuizState") []),CustomField (FieldName "typedAnswer") (CustomTypeConstructor (TitleCaseDotPhrase "String") []),CustomField (FieldName "questions") (CustomTypeConstructor (TitleCaseDotPhrase "List") [CustomTypeConstructor (TitleCaseDotPhrase "String") []]),CustomField (FieldName "typedQuestion") (CustomTypeConstructor (TitleCaseDotPhrase "String") []),CustomField (FieldName "chat") (CustomTypeConstructor (TitleCaseDotPhrase "List") [CustomTypeConstructor (TitleCaseDotPhrase "Types.ChatMessage") []]),CustomField (FieldName "typedChat") (CustomTypeConstructor (TitleCaseDotPhrase "String") []),CustomField (FieldName "typedName") (CustomTypeConstructor (TitleCaseDotPhrase "String") []),CustomField (FieldName "time") (CustomTypeConstructor (TitleCaseDotPhrase "Maybe") [CustomTypeConstructor (TitleCaseDotPhrase "Int") []])]) -}
 encodeTypesModel : Types.Model -> Json.Encode.Value
 encodeTypesModel value =
@@ -289,7 +296,7 @@ encodeTypesPeer value =
 
 
 
-{-| CustomTypeDef { constructors = [CustomTypeConstructor (TitleCaseDotPhrase "Types.Joined") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.JoinConfirmed") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.StartQuestion") [CustomTypeConstructor (TitleCaseDotPhrase "String") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.QuestionAnswered") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Answer") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.RatingStarted") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Dict.Dict") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Answer") []]],CustomTypeConstructor (TitleCaseDotPhrase "Types.RatingSent") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Rating") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.ChatSent") [CustomTypeConstructor (TitleCaseDotPhrase "String") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.ChatForwarded") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "String") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Disconnected") []], name = TypeName "Types.PeerMsg" [] } -}
+{-| CustomTypeDef { constructors = [CustomTypeConstructor (TitleCaseDotPhrase "Types.Joined") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.JoinConfirmed") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.StartQuestion") [CustomTypeConstructor (TitleCaseDotPhrase "String") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.QuestionAnswered") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Answer") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.RatingStarted") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Dict.Dict") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Answer") []]],CustomTypeConstructor (TitleCaseDotPhrase "Types.RatingSent") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Rating") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.FeedbackReceived") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Leaderboard") [],CustomTypeConstructor (TitleCaseDotPhrase "Int") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.QuizFinished") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Leaderboard") [],CustomTypeConstructor (TitleCaseDotPhrase "Maybe") [CustomTypeConstructor (TitleCaseDotPhrase "String") []]],CustomTypeConstructor (TitleCaseDotPhrase "Types.ChatSent") [CustomTypeConstructor (TitleCaseDotPhrase "String") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.ChatForwarded") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "String") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Disconnected") []], name = TypeName "Types.PeerMsg" [] } -}
 encodeTypesPeerMsg : Types.PeerMsg -> Json.Encode.Value
 encodeTypesPeerMsg value =
     case value of
@@ -299,6 +306,8 @@ encodeTypesPeerMsg value =
         (Types.QuestionAnswered m0 m1) -> (Json.Encode.list identity [ encodeString "Types.QuestionAnswered", (encodeTypesQuestion m0), (encodeTypesAnswer m1) ])
         (Types.RatingStarted m0 m1) -> (Json.Encode.list identity [ encodeString "Types.RatingStarted", (encodeTypesQuestion m0), (encodeDictDict (encodeTypesPeer) (encodeTypesAnswer) m1) ])
         (Types.RatingSent m0 m1 m2) -> (Json.Encode.list identity [ encodeString "Types.RatingSent", (encodeTypesRating m0), (encodeTypesPeer m1), (encodeTypesQuestion m2) ])
+        (Types.FeedbackReceived m0 m1 m2) -> (Json.Encode.list identity [ encodeString "Types.FeedbackReceived", (encodeTypesQuestion m0), (encodeTypesLeaderboard m1), (encodeInt m2) ])
+        (Types.QuizFinished m0 m1) -> (Json.Encode.list identity [ encodeString "Types.QuizFinished", (encodeTypesLeaderboard m0), (encodeMaybe (encodeString) m1) ])
         (Types.ChatSent m0) -> (Json.Encode.list identity [ encodeString "Types.ChatSent", (encodeString m0) ])
         (Types.ChatForwarded m0 m1) -> (Json.Encode.list identity [ encodeString "Types.ChatForwarded", (encodeTypesPeer m0), (encodeString m1) ])
         (Types.Disconnected) -> (Json.Encode.list identity [ encodeString "Types.Disconnected" ])
@@ -329,7 +338,7 @@ encodeTypesQuizHistoryItem value =
 
 
 
-{-| CustomTypeDef { constructors = [CustomTypeConstructor (TitleCaseDotPhrase "Types.NotStarted") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Time") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Loading") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Rating") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Dict.Dict") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.RatingItem") []]],CustomTypeConstructor (TitleCaseDotPhrase "Types.Finished") []], name = TypeName "Types.QuizState" [] } -}
+{-| CustomTypeDef { constructors = [CustomTypeConstructor (TitleCaseDotPhrase "Types.NotStarted") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Time") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Loading") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Rating") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Dict.Dict") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.RatingItem") []]],CustomTypeConstructor (TitleCaseDotPhrase "Types.Feedback") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Leaderboard") [],CustomTypeConstructor (TitleCaseDotPhrase "Int") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Finished") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Leaderboard") [],CustomTypeConstructor (TitleCaseDotPhrase "Maybe") [CustomTypeConstructor (TitleCaseDotPhrase "String") []]]], name = TypeName "Types.QuizState" [] } -}
 encodeTypesQuizState : Types.QuizState -> Json.Encode.Value
 encodeTypesQuizState value =
     case value of
@@ -337,7 +346,8 @@ encodeTypesQuizState value =
         (Types.Question m0 m1) -> (Json.Encode.list identity [ encodeString "Types.Question", (encodeTypesTime m0), (encodeTypesQuestion m1) ])
         (Types.Loading m0) -> (Json.Encode.list identity [ encodeString "Types.Loading", (encodeTypesQuestion m0) ])
         (Types.Rating m0 m1) -> (Json.Encode.list identity [ encodeString "Types.Rating", (encodeTypesQuestion m0), (encodeDictDict (encodeTypesPeer) (encodeTypesRatingItem) m1) ])
-        (Types.Finished) -> (Json.Encode.list identity [ encodeString "Types.Finished" ])
+        (Types.Feedback m0 m1 m2) -> (Json.Encode.list identity [ encodeString "Types.Feedback", (encodeTypesQuestion m0), (encodeTypesLeaderboard m1), (encodeInt m2) ])
+        (Types.Finished m0 m1) -> (Json.Encode.list identity [ encodeString "Types.Finished", (encodeTypesLeaderboard m0), (encodeMaybe (encodeString) m1) ])
 
 
 
@@ -409,6 +419,13 @@ decodeTypesChatMessage  =
 decodeTypesGuest : Json.Decode.Decoder (Types.Guest)
 decodeTypesGuest  =
     (decodeTypesPeer)
+
+
+
+{-| TypeAliasDef (AliasCustomType (TypeName "Types.Leaderboard" []) (CustomTypeConstructor (TitleCaseDotPhrase "Dict.Dict") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Int") []])) -}
+decodeTypesLeaderboard : Json.Decode.Decoder (Types.Leaderboard)
+decodeTypesLeaderboard  =
+    (decodeDictDict (decodeTypesPeer) (decodeInt))
 
 
 
@@ -493,7 +510,7 @@ decodeTypesPeer  =
 
 
 
-{-| CustomTypeDef { constructors = [CustomTypeConstructor (TitleCaseDotPhrase "Types.Joined") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.JoinConfirmed") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.StartQuestion") [CustomTypeConstructor (TitleCaseDotPhrase "String") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.QuestionAnswered") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Answer") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.RatingStarted") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Dict.Dict") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Answer") []]],CustomTypeConstructor (TitleCaseDotPhrase "Types.RatingSent") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Rating") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.ChatSent") [CustomTypeConstructor (TitleCaseDotPhrase "String") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.ChatForwarded") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "String") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Disconnected") []], name = TypeName "Types.PeerMsg" [] } -}
+{-| CustomTypeDef { constructors = [CustomTypeConstructor (TitleCaseDotPhrase "Types.Joined") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.JoinConfirmed") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.StartQuestion") [CustomTypeConstructor (TitleCaseDotPhrase "String") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.QuestionAnswered") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Answer") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.RatingStarted") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Dict.Dict") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Answer") []]],CustomTypeConstructor (TitleCaseDotPhrase "Types.RatingSent") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Rating") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.FeedbackReceived") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Leaderboard") [],CustomTypeConstructor (TitleCaseDotPhrase "Int") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.QuizFinished") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Leaderboard") [],CustomTypeConstructor (TitleCaseDotPhrase "Maybe") [CustomTypeConstructor (TitleCaseDotPhrase "String") []]],CustomTypeConstructor (TitleCaseDotPhrase "Types.ChatSent") [CustomTypeConstructor (TitleCaseDotPhrase "String") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.ChatForwarded") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "String") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Disconnected") []], name = TypeName "Types.PeerMsg" [] } -}
 decodeTypesPeerMsg : Json.Decode.Decoder (Types.PeerMsg)
 decodeTypesPeerMsg  =
     Json.Decode.index 0 Json.Decode.string
@@ -506,6 +523,8 @@ decodeTypesPeerMsg  =
                     "Types.QuestionAnswered" -> (Json.Decode.succeed Types.QuestionAnswered |> (Json.Decode.map2 (|>) (Json.Decode.index 1 (decodeTypesQuestion))) |> (Json.Decode.map2 (|>) (Json.Decode.index 2 (decodeTypesAnswer))))
                     "Types.RatingStarted" -> (Json.Decode.succeed Types.RatingStarted |> (Json.Decode.map2 (|>) (Json.Decode.index 1 (decodeTypesQuestion))) |> (Json.Decode.map2 (|>) (Json.Decode.index 2 (decodeDictDict (decodeTypesPeer) (decodeTypesAnswer)))))
                     "Types.RatingSent" -> (Json.Decode.succeed Types.RatingSent |> (Json.Decode.map2 (|>) (Json.Decode.index 1 (decodeTypesRating))) |> (Json.Decode.map2 (|>) (Json.Decode.index 2 (decodeTypesPeer))) |> (Json.Decode.map2 (|>) (Json.Decode.index 3 (decodeTypesQuestion))))
+                    "Types.FeedbackReceived" -> (Json.Decode.succeed Types.FeedbackReceived |> (Json.Decode.map2 (|>) (Json.Decode.index 1 (decodeTypesQuestion))) |> (Json.Decode.map2 (|>) (Json.Decode.index 2 (decodeTypesLeaderboard))) |> (Json.Decode.map2 (|>) (Json.Decode.index 3 (decodeInt))))
+                    "Types.QuizFinished" -> (Json.Decode.succeed Types.QuizFinished |> (Json.Decode.map2 (|>) (Json.Decode.index 1 (decodeTypesLeaderboard))) |> (Json.Decode.map2 (|>) (Json.Decode.index 2 (decodeMaybe (decodeString)))))
                     "Types.ChatSent" -> (Json.Decode.succeed Types.ChatSent |> (Json.Decode.map2 (|>) (Json.Decode.index 1 (decodeString))))
                     "Types.ChatForwarded" -> (Json.Decode.succeed Types.ChatForwarded |> (Json.Decode.map2 (|>) (Json.Decode.index 1 (decodeTypesPeer))) |> (Json.Decode.map2 (|>) (Json.Decode.index 2 (decodeString))))
                     "Types.Disconnected" -> (Json.Decode.succeed Types.Disconnected)
@@ -538,7 +557,7 @@ decodeTypesQuizHistoryItem  =
 
 
 
-{-| CustomTypeDef { constructors = [CustomTypeConstructor (TitleCaseDotPhrase "Types.NotStarted") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Time") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Loading") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Rating") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Dict.Dict") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.RatingItem") []]],CustomTypeConstructor (TitleCaseDotPhrase "Types.Finished") []], name = TypeName "Types.QuizState" [] } -}
+{-| CustomTypeDef { constructors = [CustomTypeConstructor (TitleCaseDotPhrase "Types.NotStarted") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Time") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Loading") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Rating") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Dict.Dict") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Peer") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.RatingItem") []]],CustomTypeConstructor (TitleCaseDotPhrase "Types.Feedback") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Question") [],CustomTypeConstructor (TitleCaseDotPhrase "Types.Leaderboard") [],CustomTypeConstructor (TitleCaseDotPhrase "Int") []],CustomTypeConstructor (TitleCaseDotPhrase "Types.Finished") [CustomTypeConstructor (TitleCaseDotPhrase "Types.Leaderboard") [],CustomTypeConstructor (TitleCaseDotPhrase "Maybe") [CustomTypeConstructor (TitleCaseDotPhrase "String") []]]], name = TypeName "Types.QuizState" [] } -}
 decodeTypesQuizState : Json.Decode.Decoder (Types.QuizState)
 decodeTypesQuizState  =
     Json.Decode.index 0 Json.Decode.string
@@ -549,7 +568,8 @@ decodeTypesQuizState  =
                     "Types.Question" -> (Json.Decode.succeed Types.Question |> (Json.Decode.map2 (|>) (Json.Decode.index 1 (decodeTypesTime))) |> (Json.Decode.map2 (|>) (Json.Decode.index 2 (decodeTypesQuestion))))
                     "Types.Loading" -> (Json.Decode.succeed Types.Loading |> (Json.Decode.map2 (|>) (Json.Decode.index 1 (decodeTypesQuestion))))
                     "Types.Rating" -> (Json.Decode.succeed Types.Rating |> (Json.Decode.map2 (|>) (Json.Decode.index 1 (decodeTypesQuestion))) |> (Json.Decode.map2 (|>) (Json.Decode.index 2 (decodeDictDict (decodeTypesPeer) (decodeTypesRatingItem)))))
-                    "Types.Finished" -> (Json.Decode.succeed Types.Finished)
+                    "Types.Feedback" -> (Json.Decode.succeed Types.Feedback |> (Json.Decode.map2 (|>) (Json.Decode.index 1 (decodeTypesQuestion))) |> (Json.Decode.map2 (|>) (Json.Decode.index 2 (decodeTypesLeaderboard))) |> (Json.Decode.map2 (|>) (Json.Decode.index 3 (decodeInt))))
+                    "Types.Finished" -> (Json.Decode.succeed Types.Finished |> (Json.Decode.map2 (|>) (Json.Decode.index 1 (decodeTypesLeaderboard))) |> (Json.Decode.map2 (|>) (Json.Decode.index 2 (decodeMaybe (decodeString)))))
                     _ -> Json.Decode.fail ("Unexpected Types.QuizState: " ++ word)
             )
                  

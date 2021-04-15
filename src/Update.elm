@@ -49,26 +49,43 @@ update msg model =
                     )
 
                 ( Host h guests, Ok (RatingSent rating p question) ) ->
-                    ( { model
-                        | role =
-                            Host
-                                (Dict.update question
-                                    (Maybe.map
-                                        (\a ->
-                                            { a
-                                                | answers =
-                                                    Dict.update p
-                                                        (Maybe.map (\b -> { b | ratings = Dict.insert peer rating b.ratings }))
-                                                        a.answers
-                                            }
-                                        )
+                    let
+                        newHistory =
+                            Dict.update question
+                                (Maybe.map
+                                    (\a ->
+                                        { a
+                                            | answers =
+                                                Dict.update p
+                                                    (Maybe.map (\b -> { b | ratings = Dict.insert peer rating b.ratings }))
+                                                    a.answers
+                                        }
                                     )
-                                    h
                                 )
-                                guests
-                      }
-                    , Cmd.none
+                                h
+                    in
+                    ( { model | role = Host newHistory guests }
+                    , if ratingCompleted question newHistory then
+                        Cmd.batch
+                            (List.map
+                                (\( q, ratings ) ->
+                                    toPeer
+                                        { peer = q
+                                        , value = encodeTypesPeerMsg (FeedbackReceived question (leaderboard newHistory) ratings)
+                                        }
+                                )
+                                (extractRatings (Dict.get question newHistory))
+                            )
+
+                      else
+                        Cmd.none
                     )
+
+                ( _, Ok (QuizFinished l m) ) ->
+                    ( { model | quiz = Finished l m}, Cmd.none )
+
+                ( Guest _, Ok (FeedbackReceived q l rating) ) ->
+                    ( { model | quiz = Feedback q l rating }, Cmd.none )
 
                 ( NotSelected, Ok JoinConfirmed ) ->
                     ( { model | role = Guest peer }, Cmd.none )
@@ -149,7 +166,18 @@ update msg model =
                             )
 
                         Nothing ->
-                            ( { model | quiz = Finished }, Cmd.none )
+                            ( { model | quiz = Finished (leaderboard history) Nothing }
+                            , Cmd.batch
+                                (List.map
+                                    (\p ->
+                                        toPeer
+                                            { peer = p
+                                            , value = encodeTypesPeerMsg (QuizFinished (leaderboard history) Nothing)
+                                            }
+                                    )
+                                    (model.name :: guests)
+                                )
+                            )
 
                 _ ->
                     ( model, Cmd.none )
@@ -368,3 +396,46 @@ first ( a, _, _ ) =
 
 dropFirst ( _, a, b ) =
     ( a, b )
+
+
+ratingCompleted : Question -> QuizHistory -> Bool
+ratingCompleted q h =
+    let
+        answers =
+            Dict.get q h
+                |> Maybe.map .answers
+                |> Maybe.withDefault Dict.empty
+
+        nAnswers =
+            Debug.log "nAnswers" (Dict.size answers)
+
+        nRatings =
+            Debug.log "nRatings"
+                (Dict.toList answers
+                    |> List.concatMap (\( _, a ) -> Dict.values a.ratings)
+                    |> List.length
+                )
+    in
+    nRatings >= (nGraders nAnswers * nAnswers)
+
+
+leaderboard : QuizHistory -> Dict Peer Int
+leaderboard h =
+    Dict.values h
+        |> List.map .answers
+        |> List.concatMap
+            (Dict.map (\_ a -> sum (Dict.values a.ratings))
+                >> Dict.toList
+            )
+        |> Dict.fromListDedupe (+)
+
+
+extractRatings :
+    Maybe
+        { answers : Dict Peer { answer : Answer, ratings : Dict Peer Rating }
+        , order : Int
+        }
+    -> List ( Peer, Rating )
+extractRatings =
+    Maybe.map (.answers >> Dict.map (\_ a -> sum (Dict.values a.ratings)) >> Dict.toList)
+        >> Maybe.withDefault []

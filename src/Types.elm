@@ -17,6 +17,10 @@ type alias Answer =
     String
 
 
+type alias Leaderboard =
+    Dict Peer Int
+
+
 type PeerMsg
     = Joined
     | JoinConfirmed
@@ -24,6 +28,8 @@ type PeerMsg
     | QuestionAnswered Question Answer
     | RatingStarted Question (Dict Peer Answer)
     | RatingSent Rating Peer Question
+    | FeedbackReceived Question Leaderboard Int
+    | QuizFinished Leaderboard (Maybe String)
     | ChatSent String
     | ChatForwarded Peer String
     | Disconnected
@@ -106,7 +112,8 @@ type QuizState
     | Question Time Question
     | Loading Question
     | Rating Question (Dict Peer RatingItem)
-    | Finished
+    | Feedback Question Leaderboard Int
+    | Finished Leaderboard (Maybe String)
 
 
 type alias RatingItem =
@@ -154,9 +161,6 @@ init name =
       }
     , Cmd.none
     )
-
-
-
 
 
 type alias ChatMessage =
