@@ -20007,7 +20007,9 @@ var $author$project$View$ratingCard = F2(
 									$elm$html$Html$div,
 									_List_fromArray(
 										[
-											A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between')
+											A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+											A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between'),
+											$elm$html$Html$Attributes$class('row-or-column')
 										]),
 									_List_fromArray(
 										[

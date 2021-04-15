@@ -534,7 +534,11 @@ ratingCard ( peer, { answer, rating } ) q =
             [ Card.block
                 (div [ style "margin" "30px" ]
                     [ Html.text answer
-                    , div [ style "justify-content" "space-between" ]
+                    , div
+                        [ style "display" "flex"
+                        , style "justify-content" "space-between"
+                        , class "row-or-column"
+                        ]
                         [ ratingRadio q peer rating 0 "Not really"
                         , ratingRadio q peer rating 1 "Kind of"
                         , ratingRadio q peer rating 2 "Yes exactly"

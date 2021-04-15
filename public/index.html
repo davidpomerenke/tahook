@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tahook</title>
     <style>
-        html, body {
+        html,
+        body {
             height: 100%;
             margin: 0;
+        }
+
+        @media screen and (max-width: 500px) {
+            .row-or-column {
+                flex-direction: column;
+            }
         }
     </style>
     <link rel="icon" href="data:,">
