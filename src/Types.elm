@@ -3,6 +3,7 @@ module Types exposing (..)
 import Dict exposing (Dict)
 import Json.Decode
 import Json.Encode
+import Questions exposing (..)
 
 
 type alias Peer =
@@ -24,9 +25,9 @@ type alias Leaderboard =
 type PeerMsg
     = Joined
     | JoinConfirmed
-    | StartQuestion String
+    | StartQuestion String Int
     | QuestionAnswered Question Answer
-    | RatingStarted Question (Dict Peer Answer)
+    | RatingStarted QuestionConfig (Dict Peer Answer)
     | RatingSent Rating Peer Question
     | FeedbackReceived Question Leaderboard Int
     | QuizFinished Leaderboard (Maybe String)
@@ -45,7 +46,7 @@ type Msg
     | ShowDrawer
     | HideDrawer
     | ShowHome
-    | QuestionStarted Int Question
+    | QuestionStarted Int Question Int
     | AnswerFocused
     | AnswerTyped String
     | Rated Rating Peer Question
@@ -109,9 +110,9 @@ type alias Time =
 
 type QuizState
     = NotStarted
-    | Question Time Question
+    | Question Time Question Int
     | Loading Question
-    | Rating Question (Dict Peer RatingItem)
+    | Rating QuestionConfig (Dict Peer RatingItem)
     | Feedback Question Leaderboard Int
     | Finished Leaderboard (Maybe String)
 
@@ -130,12 +131,20 @@ type alias Model =
     , page : Page
     , quiz : QuizState
     , typedAnswer : String
-    , questions : List String
+    , questions : List QuestionConfig
     , typedQuestion : String
+    , selectedDuration : Int
     , chat : List ChatMessage
     , typedChat : String
     , typedName : String
     , time : Maybe Int
+    }
+
+
+type alias QuestionConfig =
+    { question : String
+    , duration : Int
+    , suggestion : String
     }
 
 
@@ -149,11 +158,8 @@ init name =
       , typedAnswer = ""
       , quiz = NotStarted
       , typedQuestion = ""
-      , questions =
-            [ "First question?"
-            , "Second question?"
-            , "Third question?"
-            ]
+      , selectedDuration = 30
+      , questions = Questions.questionsAndSuggestions
       , chat = []
       , typedChat = ""
       , typedName = ""

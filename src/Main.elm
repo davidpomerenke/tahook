@@ -46,7 +46,7 @@ subscriptions model =
     Sub.batch
         (fromPeer (\{ peer, value } -> FromPeer peer value)
             :: (case model.quiz of
-                    Question _ _ ->
+                    Question _ _ _ ->
                         [ Browser.Events.onAnimationFrame
                             (\posix -> Tick (Time.posixToMillis posix))
                         ]

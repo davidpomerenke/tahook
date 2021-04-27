@@ -325,7 +325,7 @@ quizView model =
                         )
                     ]
 
-            ( Host _ _, Question _ _ ) ->
+            ( Host _ _, Question _ _ _ ) ->
                 none
 
             ( Host _ _, Rating _ _ ) ->
@@ -353,14 +353,14 @@ quizView model =
                 NotStarted ->
                     paragraph [] [ Element.text "Waiting for the host to start the quiz." ]
 
-                Question due q ->
+                Question due q duration ->
                     model.time
-                        |> Maybe.map (\time -> htmlFill (questionCard (due - time) q Nothing model))
+                        |> Maybe.map (\time -> htmlFill (questionCard (due - time) q (Just duration) Nothing Nothing model))
                         |> Maybe.withDefault none
 
                 Loading q ->
                     column [ Element.width fill, spacing 50 ]
-                        [ htmlFill (questionCard 0 q Nothing model)
+                        [ htmlFill (questionCard 0 q Nothing Nothing Nothing model)
                         , paragraph [] [ Element.text "Waiting for the peer grading to start. (If you did not attempt to answer this question, then you will also skip the grading for this question.)" ]
                         ]
 
@@ -368,17 +368,17 @@ quizView model =
                     column [ Element.width fill, spacing 50 ]
                         ((case model.role of
                             Guest _ ->
-                                htmlFill (questionCard 0 q Nothing model)
+                                htmlFill (questionCard 0 q.question Nothing (Just q.suggestion) Nothing model)
 
                             _ ->
                                 none
                          )
-                            :: List.map (\a -> htmlFill (ratingCard a q)) (Dict.toList peerAnswers)
+                            :: List.map (\a -> htmlFill (ratingCard a q.question)) (Dict.toList peerAnswers)
                         )
 
                 Feedback q leaderboard rating ->
                     column [ Element.width fill, spacing 50 ]
-                        [ htmlFill (questionCard 0 q (Just rating) model)
+                        [ htmlFill (questionCard 0 q Nothing Nothing (Just rating) model)
                         , htmlCenter (Button.raised Button.config ("+" ++ String.fromInt (rating * 100)))
                         , leaderboardList model leaderboard
                         ]
@@ -473,7 +473,7 @@ historyListItem nAnswers ( name, { answer, ratings } ) =
         ]
 
 
-questionCard progress q rating model =
+questionCard progress q duration suggestion rating model =
     Card.card
         (Card.config |> Card.setAttributes [ fillWidth, Elevation.z8 ])
         { blocks =
@@ -481,7 +481,7 @@ questionCard progress q rating model =
                 (div [ onClick AnswerFocused ]
                     [ let
                         progress_ =
-                            toFloat (Basics.max 0 progress) / questionDuration
+                            toFloat (Basics.max 0 progress) / toFloat (Maybe.withDefault 30 duration)
                       in
                       div
                         [ style "background-color" "blue"
@@ -502,7 +502,7 @@ questionCard progress q rating model =
                                         |> TextField.setPlaceholder (Just "Type your answer here ...")
                                         |> TextField.setDisabled
                                             (case model.quiz of
-                                                Question _ _ ->
+                                                Question _ _ _ ->
                                                     False
 
                                                 _ ->
@@ -510,6 +510,15 @@ questionCard progress q rating model =
                                             )
                                     )
                                 ]
+
+                        _ ->
+                            Html.text ""
+                    , case suggestion of
+                        Just s ->
+                            layout [ padding 30 ]
+                                (paragraph []
+                                    [ Element.text ("Suggested answer: " ++ s) ]
+                                )
 
                         _ ->
                             Html.text ""
@@ -522,8 +531,8 @@ questionCard progress q rating model =
 
 questionToListItem a =
     ListItem.listItem ListItem.config
-        [ Html.text a
-        , ListItem.meta [ onClick (QuestionRemoved a) ] [ Icon.icon [] "remove_circle_outline" ]
+        [ Html.text a.question
+        , ListItem.meta [ onClick (QuestionRemoved a.question) ] [ Icon.icon [] "remove_circle_outline" ]
         ]
 
 

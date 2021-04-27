@@ -10585,24 +10585,20 @@ var $elm$browser$Browser$document = _Browser_document;
 var $author$project$Types$HomePage = {$: 'HomePage'};
 var $author$project$Types$NotSelected = {$: 'NotSelected'};
 var $author$project$Types$NotStarted = {$: 'NotStarted'};
+var $author$project$Questions$questionsAndSuggestions = _List_fromArray(
+	[
+		{duration: 40, question: 'What is the difference between validity and truth?', suggestion: 'Validity is about arguments, truth about sentences; or: a valid argument does not necessarily have a true conclusion.'},
+		{duration: 40, question: 'Give an example of a tautology!', suggestion: 'There are many! For example, p or (not p); p iff (not (not p)); ...'},
+		{duration: 40, question: 'Name a formula that is logically equivalent to \'p implies q\'!', suggestion: 'For example, (not q) implies (not p); not (not (p implies q)); ...'},
+		{duration: 30, question: 'How do you read V |= p?', suggestion: 'There are three correct answers: V makes p true; V satisfies p; V is a model of p. (One of them is enough for full points here.)'},
+		{duration: 30, question: 'Give 2 desirable properties of a proof system!', suggestion: 'Soundness and completeness. (Both should be named for full points.)'},
+		{duration: 40, question: 'Let\'s see what you have learned: What is the difference between validity and truth?', suggestion: 'Validity is about arguments, truth about sentences; or: a valid argument does not necessarily have a true conclusion.'},
+		{duration: 40, question: 'One more revision: Name a formula that is logically equivalent to \'p implies q\'!', suggestion: 'For example, (not q) implies (not p); not (not (p implies q)); ...'},
+		{duration: 60, question: 'How many different possible logical operations with two arguments are there?', suggestion: '16. The two arguments create 2*2=4 situations to be considered, and an operator could assign either true or false (2 options) to any of these 4 situations, so there are 2^4=16 possible operators.'}
+	]);
 var $author$project$Types$init = function (name) {
 	return _Utils_Tuple2(
-		{
-			chat: _List_Nil,
-			drawerShown: false,
-			name: name,
-			page: $author$project$Types$HomePage,
-			questions: _List_fromArray(
-				['First question?', 'Second question?', 'Third question?']),
-			quiz: $author$project$Types$NotStarted,
-			role: $author$project$Types$NotSelected,
-			time: $elm$core$Maybe$Nothing,
-			typedAnswer: '',
-			typedChat: '',
-			typedHost: $elm$core$Maybe$Nothing,
-			typedName: '',
-			typedQuestion: ''
-		},
+		{chat: _List_Nil, drawerShown: false, name: name, page: $author$project$Types$HomePage, questions: $author$project$Questions$questionsAndSuggestions, quiz: $author$project$Types$NotStarted, role: $author$project$Types$NotSelected, selectedDuration: 30, time: $elm$core$Maybe$Nothing, typedAnswer: '', typedChat: '', typedHost: $elm$core$Maybe$Nothing, typedName: '', typedQuestion: ''},
 		$elm$core$Platform$Cmd$none);
 };
 var $author$project$Types$FromPeer = F2(
@@ -10823,17 +10819,17 @@ var $author$project$Types$Loading = function (a) {
 	return {$: 'Loading', a: a};
 };
 var $author$project$Types$NoOp = {$: 'NoOp'};
-var $author$project$Types$Question = F2(
-	function (a, b) {
-		return {$: 'Question', a: a, b: b};
+var $author$project$Types$Question = F3(
+	function (a, b, c) {
+		return {$: 'Question', a: a, b: b, c: c};
 	});
 var $author$project$Types$QuestionAnswered = F2(
 	function (a, b) {
 		return {$: 'QuestionAnswered', a: a, b: b};
 	});
-var $author$project$Types$QuestionStarted = F2(
-	function (a, b) {
-		return {$: 'QuestionStarted', a: a, b: b};
+var $author$project$Types$QuestionStarted = F3(
+	function (a, b, c) {
+		return {$: 'QuestionStarted', a: a, b: b, c: c};
 	});
 var $author$project$Types$QuestionsPage = {$: 'QuestionsPage'};
 var $author$project$Types$QuizFinished = F2(
@@ -10856,9 +10852,10 @@ var $author$project$Types$RatingStarted = F2(
 	function (a, b) {
 		return {$: 'RatingStarted', a: a, b: b};
 	});
-var $author$project$Types$StartQuestion = function (a) {
-	return {$: 'StartQuestion', a: a};
-};
+var $author$project$Types$StartQuestion = F2(
+	function (a, b) {
+		return {$: 'StartQuestion', a: a, b: b};
+	});
 var $elm$random$Random$Generator = function (a) {
 	return {$: 'Generator', a: a};
 };
@@ -11356,6 +11353,35 @@ var $author$project$Types$Auto$decodeTypesAnswer = $author$project$Types$Auto$de
 var $author$project$Types$Auto$decodeTypesPeer = $author$project$Types$Auto$decodeString;
 var $author$project$Types$Auto$decodeTypesLeaderboard = A2($author$project$Types$Auto$decodeDictDict, $author$project$Types$Auto$decodeTypesPeer, $author$project$Types$Auto$decodeInt);
 var $author$project$Types$Auto$decodeTypesQuestion = $author$project$Types$Auto$decodeString;
+var $author$project$Types$QuestionConfig = F3(
+	function (question, duration, suggestion) {
+		return {duration: duration, question: question, suggestion: suggestion};
+	});
+var $author$project$Types$Auto$decodeTypesQuestionConfig = A3(
+	$elm$json$Json$Decode$map2,
+	$elm$core$Basics$apR,
+	A2(
+		$elm$json$Json$Decode$at,
+		_List_fromArray(
+			['suggestion']),
+		$author$project$Types$Auto$decodeString),
+	A3(
+		$elm$json$Json$Decode$map2,
+		$elm$core$Basics$apR,
+		A2(
+			$elm$json$Json$Decode$at,
+			_List_fromArray(
+				['duration']),
+			$author$project$Types$Auto$decodeInt),
+		A3(
+			$elm$json$Json$Decode$map2,
+			$elm$core$Basics$apR,
+			A2(
+				$elm$json$Json$Decode$at,
+				_List_fromArray(
+					['question']),
+				$author$project$Types$Auto$decodeString),
+			$elm$json$Json$Decode$succeed($author$project$Types$QuestionConfig))));
 var $author$project$Types$Auto$decodeTypesRating = $author$project$Types$Auto$decodeInt;
 var $author$project$Types$Auto$decodeTypesPeerMsg = A2(
 	$elm$json$Json$Decode$andThen,
@@ -11369,8 +11395,12 @@ var $author$project$Types$Auto$decodeTypesPeerMsg = A2(
 				return A3(
 					$elm$json$Json$Decode$map2,
 					$elm$core$Basics$apR,
-					A2($elm$json$Json$Decode$index, 1, $author$project$Types$Auto$decodeString),
-					$elm$json$Json$Decode$succeed($author$project$Types$StartQuestion));
+					A2($elm$json$Json$Decode$index, 2, $author$project$Types$Auto$decodeInt),
+					A3(
+						$elm$json$Json$Decode$map2,
+						$elm$core$Basics$apR,
+						A2($elm$json$Json$Decode$index, 1, $author$project$Types$Auto$decodeString),
+						$elm$json$Json$Decode$succeed($author$project$Types$StartQuestion)));
 			case 'Types.QuestionAnswered':
 				return A3(
 					$elm$json$Json$Decode$map2,
@@ -11392,7 +11422,7 @@ var $author$project$Types$Auto$decodeTypesPeerMsg = A2(
 					A3(
 						$elm$json$Json$Decode$map2,
 						$elm$core$Basics$apR,
-						A2($elm$json$Json$Decode$index, 1, $author$project$Types$Auto$decodeTypesQuestion),
+						A2($elm$json$Json$Decode$index, 1, $author$project$Types$Auto$decodeTypesQuestionConfig),
 						$elm$json$Json$Decode$succeed($author$project$Types$RatingStarted)));
 			case 'Types.RatingSent':
 				return A3(
@@ -11520,6 +11550,21 @@ var $author$project$Types$Auto$encodeTypesLeaderboard = function (value) {
 var $author$project$Types$Auto$encodeTypesQuestion = function (value) {
 	return $author$project$Types$Auto$encodeString(value);
 };
+var $author$project$Types$Auto$encodeTypesQuestionConfig = function (value) {
+	return $elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'question',
+				$author$project$Types$Auto$encodeString(value.question)),
+				_Utils_Tuple2(
+				'duration',
+				$author$project$Types$Auto$encodeInt(value.duration)),
+				_Utils_Tuple2(
+				'suggestion',
+				$author$project$Types$Auto$encodeString(value.suggestion))
+			]));
+};
 var $author$project$Types$Auto$encodeTypesRating = function (value) {
 	return $author$project$Types$Auto$encodeInt(value);
 };
@@ -11543,13 +11588,15 @@ var $author$project$Types$Auto$encodeTypesPeerMsg = function (value) {
 					]));
 		case 'StartQuestion':
 			var m0 = value.a;
+			var m1 = value.b;
 			return A2(
 				$elm$json$Json$Encode$list,
 				$elm$core$Basics$identity,
 				_List_fromArray(
 					[
 						$author$project$Types$Auto$encodeString('Types.StartQuestion'),
-						$author$project$Types$Auto$encodeString(m0)
+						$author$project$Types$Auto$encodeString(m0),
+						$author$project$Types$Auto$encodeInt(m1)
 					]));
 		case 'QuestionAnswered':
 			var m0 = value.a;
@@ -11572,7 +11619,7 @@ var $author$project$Types$Auto$encodeTypesPeerMsg = function (value) {
 				_List_fromArray(
 					[
 						$author$project$Types$Auto$encodeString('Types.RatingStarted'),
-						$author$project$Types$Auto$encodeTypesQuestion(m0),
+						$author$project$Types$Auto$encodeTypesQuestionConfig(m0),
 						A3($author$project$Types$Auto$encodeDictDict, $author$project$Types$Auto$encodeTypesPeer, $author$project$Types$Auto$encodeTypesAnswer, m1)
 					]));
 		case 'RatingSent':
@@ -11683,6 +11730,27 @@ var $elm_community$list_extra$List$Extra$filterNot = F2(
 			$elm$core$List$filter,
 			A2($elm$core$Basics$composeL, $elm$core$Basics$not, pred),
 			list);
+	});
+var $elm_community$list_extra$List$Extra$find = F2(
+	function (predicate, list) {
+		find:
+		while (true) {
+			if (!list.b) {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var first = list.a;
+				var rest = list.b;
+				if (predicate(first)) {
+					return $elm$core$Maybe$Just(first);
+				} else {
+					var $temp$predicate = predicate,
+						$temp$list = rest;
+					predicate = $temp$predicate;
+					list = $temp$list;
+					continue find;
+				}
+			}
+		}
 	});
 var $elm$browser$Browser$Dom$focus = _Browser_call('focus');
 var $elm$random$Random$Generate = function (a) {
@@ -11824,8 +11892,6 @@ var $elm$core$Dict$member = F2(
 			return false;
 		}
 	});
-var $author$project$Shared$questionDuration = 10000;
-var $elm$core$Debug$log = _Debug_log;
 var $author$project$Update$ratingCompleted = F2(
 	function (q, h) {
 		var answers = A2(
@@ -11837,21 +11903,15 @@ var $author$project$Update$ratingCompleted = F2(
 					return $.answers;
 				},
 				A2($elm$core$Dict$get, q, h)));
-		var nAnswers = A2(
-			$elm$core$Debug$log,
-			'nAnswers',
-			$elm$core$Dict$size(answers));
-		var nRatings = A2(
-			$elm$core$Debug$log,
-			'nRatings',
-			$elm$core$List$length(
-				A2(
-					$elm$core$List$concatMap,
-					function (_v0) {
-						var a = _v0.b;
-						return $elm$core$Dict$values(a.ratings);
-					},
-					$elm$core$Dict$toList(answers))));
+		var nAnswers = $elm$core$Dict$size(answers);
+		var nRatings = $elm$core$List$length(
+			A2(
+				$elm$core$List$concatMap,
+				function (_v0) {
+					var a = _v0.b;
+					return $elm$core$Dict$values(a.ratings);
+				},
+				$elm$core$Dict$toList(answers)));
 		return _Utils_cmp(
 			nRatings,
 			$author$project$Shared$nGraders(nAnswers) * nAnswers) > -1;
@@ -12000,23 +12060,26 @@ var $author$project$Update$update = F2(
 									break _v1$11;
 								}
 							case 'StartQuestion':
-								var q = _v1.b.a.a;
+								var _v8 = _v1.b.a;
+								var q = _v8.a;
+								var duration = _v8.b;
 								return _Utils_Tuple2(
 									model,
 									A2(
 										$elm$core$Task$perform,
 										function (t) {
-											return A2(
+											return A3(
 												$author$project$Types$QuestionStarted,
-												$elm$time$Time$posixToMillis(t) + $author$project$Shared$questionDuration,
-												q);
+												$elm$time$Time$posixToMillis(t) + (duration * 1000),
+												q,
+												duration * 1000);
 										},
 										$elm$time$Time$now));
 							case 'RatingStarted':
 								if (_v1.a.$ === 'Guest') {
-									var _v8 = _v1.b.a;
-									var q = _v8.a;
-									var peerAnswers = _v8.b;
+									var _v9 = _v1.b.a;
+									var q = _v9.a;
+									var peerAnswers = _v9.b;
 									return _Utils_Tuple2(
 										_Utils_update(
 											model,
@@ -12027,7 +12090,7 @@ var $author$project$Update$update = F2(
 													A2(
 														$elm$core$Dict$map,
 														F2(
-															function (_v9, a) {
+															function (_v10, a) {
 																return {answer: a, rating: $elm$core$Maybe$Nothing};
 															}),
 														peerAnswers))
@@ -12038,13 +12101,13 @@ var $author$project$Update$update = F2(
 								}
 							case 'RatingSent':
 								if (_v1.a.$ === 'Host') {
-									var _v10 = _v1.a;
-									var h = _v10.a;
-									var guests = _v10.b;
-									var _v11 = _v1.b.a;
-									var rating = _v11.a;
-									var p = _v11.b;
-									var question = _v11.c;
+									var _v11 = _v1.a;
+									var h = _v11.a;
+									var guests = _v11.b;
+									var _v12 = _v1.b.a;
+									var rating = _v12.a;
+									var p = _v12.b;
+									var question = _v12.c;
 									var newHistory = A3(
 										$elm$core$Dict$update,
 										question,
@@ -12077,9 +12140,9 @@ var $author$project$Update$update = F2(
 										A2($author$project$Update$ratingCompleted, question, newHistory) ? $elm$core$Platform$Cmd$batch(
 											A2(
 												$elm$core$List$map,
-												function (_v12) {
-													var q = _v12.a;
-													var ratings = _v12.b;
+												function (_v13) {
+													var q = _v13.a;
+													var ratings = _v13.b;
 													return $author$project$Ports$toPeer(
 														{
 															peer: q,
@@ -12097,9 +12160,9 @@ var $author$project$Update$update = F2(
 									break _v1$11;
 								}
 							case 'QuizFinished':
-								var _v13 = _v1.b.a;
-								var l = _v13.a;
-								var m = _v13.b;
+								var _v14 = _v1.b.a;
+								var l = _v14.a;
+								var m = _v14.b;
 								return _Utils_Tuple2(
 									_Utils_update(
 										model,
@@ -12109,10 +12172,10 @@ var $author$project$Update$update = F2(
 									$elm$core$Platform$Cmd$none);
 							case 'FeedbackReceived':
 								if (_v1.a.$ === 'Guest') {
-									var _v14 = _v1.b.a;
-									var q = _v14.a;
-									var l = _v14.b;
-									var rating = _v14.c;
+									var _v15 = _v1.b.a;
+									var q = _v15.a;
+									var l = _v15.b;
+									var rating = _v15.c;
 									return _Utils_Tuple2(
 										_Utils_update(
 											model,
@@ -12125,8 +12188,8 @@ var $author$project$Update$update = F2(
 								}
 							case 'JoinConfirmed':
 								if (_v1.a.$ === 'NotSelected') {
-									var _v15 = _v1.a;
-									var _v16 = _v1.b.a;
+									var _v16 = _v1.a;
+									var _v17 = _v1.b.a;
 									return _Utils_Tuple2(
 										_Utils_update(
 											model,
@@ -12139,8 +12202,8 @@ var $author$project$Update$update = F2(
 								}
 							case 'ChatSent':
 								if (_v1.a.$ === 'Host') {
-									var _v17 = _v1.a;
-									var guests = _v17.b;
+									var _v18 = _v1.a;
+									var guests = _v18.b;
 									var a = _v1.b.a.a;
 									return _Utils_Tuple2(
 										_Utils_update(
@@ -12173,9 +12236,9 @@ var $author$project$Update$update = F2(
 								}
 							default:
 								if (_v1.a.$ === 'Guest') {
-									var _v18 = _v1.b.a;
-									var a = _v18.a;
-									var b = _v18.b;
+									var _v19 = _v1.b.a;
+									var a = _v19.a;
+									var b = _v19.b;
 									return _Utils_Tuple2(
 										_Utils_update(
 											model,
@@ -12213,9 +12276,9 @@ var $author$project$Update$update = F2(
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'QuizJoinRequested':
-				var _v19 = model.typedHost;
-				if (_v19.$ === 'Just') {
-					var a = _v19.a;
+				var _v20 = model.typedHost;
+				if (_v20.$ === 'Just') {
+					var a = _v20.a;
 					return _Utils_Tuple2(
 						model,
 						$author$project$Ports$toPeer(
@@ -12253,15 +12316,15 @@ var $author$project$Update$update = F2(
 						{drawerShown: false, page: $author$project$Types$HomePage}),
 					$elm$core$Platform$Cmd$none);
 			case 'NextQuestionClick':
-				var _v20 = model.role;
-				if (_v20.$ === 'Host') {
-					var history = _v20.a;
-					var guests = _v20.b;
+				var _v21 = model.role;
+				if (_v21.$ === 'Host') {
+					var history = _v21.a;
+					var guests = _v21.b;
 					var nextQuestion = $elm$core$List$head(
 						A2(
 							$elm_community$list_extra$List$Extra$filterNot,
 							function (a) {
-								return A2($elm$core$Dict$member, a, history);
+								return A2($elm$core$Dict$member, a.question, history);
 							},
 							model.questions));
 					if (nextQuestion.$ === 'Just') {
@@ -12276,7 +12339,7 @@ var $author$project$Update$update = F2(
 											{
 												peer: guest,
 												value: $author$project$Types$Auto$encodeTypesPeerMsg(
-													$author$project$Types$StartQuestion(q))
+													A2($author$project$Types$StartQuestion, q.question, q.duration))
 											});
 									},
 									A2($elm$core$List$cons, model.name, guests))));
@@ -12312,35 +12375,37 @@ var $author$project$Update$update = F2(
 			case 'QuestionStarted':
 				var due = msg.a;
 				var question = msg.b;
+				var duration = msg.c;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							quiz: A2($author$project$Types$Question, due, question),
+							quiz: A3($author$project$Types$Question, due, question, duration),
 							typedAnswer: ''
 						}),
 					A2(
 						$elm$core$Task$attempt,
-						function (_v23) {
+						function (_v24) {
 							return $author$project$Types$NoOp;
 						},
 						A2(
 							$elm$core$Task$andThen,
-							function (_v22) {
+							function (_v23) {
 								return $elm$browser$Browser$Dom$focus('answer-field');
 							},
 							$elm$core$Process$sleep(100))));
 			case 'Tick':
 				var time = msg.a;
-				var _v24 = model.quiz;
-				if (_v24.$ === 'Question') {
-					var due = _v24.a;
-					var q = _v24.b;
+				var _v25 = model.quiz;
+				if (_v25.$ === 'Question') {
+					var due = _v25.a;
+					var q = _v25.b;
+					var duratio_ = _v25.c;
 					if (_Utils_cmp(time, due) > -1) {
-						var _v25 = model.role;
-						switch (_v25.$) {
+						var _v26 = model.role;
+						switch (_v26.$) {
 							case 'Guest':
-								var host = _v25.a;
+								var host = _v26.a;
 								return _Utils_Tuple2(
 									_Utils_update(
 										model,
@@ -12354,8 +12419,8 @@ var $author$project$Update$update = F2(
 												A2($author$project$Types$QuestionAnswered, q, model.typedAnswer))
 										}));
 							case 'Host':
-								var h = _v25.a;
-								var guests = _v25.b;
+								var h = _v26.a;
+								var guests = _v26.b;
 								return _Utils_Tuple2(
 									_Utils_update(
 										model,
@@ -12364,8 +12429,8 @@ var $author$project$Update$update = F2(
 											role: A2(
 												$author$project$Types$Host,
 												function () {
-													var _v26 = A2($elm$core$Dict$get, q, h);
-													if (_v26.$ === 'Nothing') {
+													var _v27 = A2($elm$core$Dict$get, q, h);
+													if (_v27.$ === 'Nothing') {
 														return A3(
 															$elm$core$Dict$insert,
 															q,
@@ -12382,7 +12447,7 @@ var $author$project$Update$update = F2(
 										}),
 									A2(
 										$elm$core$Task$attempt,
-										function (_v27) {
+										function (_v28) {
 											return $author$project$Types$AnswerCollectionEnded(q);
 										},
 										$elm$core$Process$sleep(1000)));
@@ -12403,9 +12468,9 @@ var $author$project$Update$update = F2(
 				}
 			case 'AnswerCollectionEnded':
 				var q = msg.a;
-				var _v28 = model.role;
-				if (_v28.$ === 'Host') {
-					var h = _v28.a;
+				var _v29 = model.role;
+				if (_v29.$ === 'Host') {
+					var h = _v29.a;
 					return _Utils_Tuple2(
 						model,
 						function () {
@@ -12421,7 +12486,7 @@ var $author$project$Update$update = F2(
 										},
 										$elm$core$Dict$map(
 											F2(
-												function (_v29, v) {
+												function (_v30, v) {
 													return v.answer;
 												}))),
 									A2($elm$core$Dict$get, q, h)));
@@ -12436,32 +12501,48 @@ var $author$project$Update$update = F2(
 			case 'RatingAllocated':
 				var q = msg.a;
 				var allocation_ = msg.b;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							quiz: A2($author$project$Types$Rating, q, $elm$core$Dict$empty)
-						}),
-					$elm$core$Platform$Cmd$batch(
+				var _v31 = model.role;
+				if (_v31.$ === 'Host') {
+					var h = _v31.a;
+					var qs = A2(
+						$elm$core$Maybe$withDefault,
+						{duration: 0, question: q, suggestion: ''},
 						A2(
-							$elm$core$List$map,
-							function (_v30) {
-								var peer = _v30.a;
-								var answers = _v30.b;
-								return $author$project$Ports$toPeer(
-									{
-										peer: peer,
-										value: $author$project$Types$Auto$encodeTypesPeerMsg(
-											A2($author$project$Types$RatingStarted, q, answers))
-									});
+							$elm_community$list_extra$List$Extra$find,
+							function (_v33) {
+								var question = _v33.question;
+								return _Utils_eq(question, q);
 							},
-							$elm$core$Dict$toList(allocation_))));
+							model.questions));
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								quiz: A2($author$project$Types$Rating, qs, $elm$core$Dict$empty)
+							}),
+						$elm$core$Platform$Cmd$batch(
+							A2(
+								$elm$core$List$map,
+								function (_v32) {
+									var peer = _v32.a;
+									var answers = _v32.b;
+									return $author$project$Ports$toPeer(
+										{
+											peer: peer,
+											value: $author$project$Types$Auto$encodeTypesPeerMsg(
+												A2($author$project$Types$RatingStarted, qs, answers))
+										});
+								},
+								$elm$core$Dict$toList(allocation_))));
+				} else {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
 			case 'AnswerFocused':
 				return _Utils_Tuple2(
 					model,
 					A2(
 						$elm$core$Task$attempt,
-						function (_v31) {
+						function (_v34) {
 							return $author$project$Types$NoOp;
 						},
 						$elm$browser$Browser$Dom$focus('answer-field')));
@@ -12481,10 +12562,10 @@ var $author$project$Update$update = F2(
 						model,
 						{
 							quiz: function () {
-								var _v32 = model.quiz;
-								if (_v32.$ === 'Rating') {
-									var q = _v32.a;
-									var rs = _v32.b;
+								var _v35 = model.quiz;
+								if (_v35.$ === 'Rating') {
+									var q = _v35.a;
+									var rs = _v35.b;
 									return A2(
 										$author$project$Types$Rating,
 										q,
@@ -12506,9 +12587,9 @@ var $author$project$Update$update = F2(
 							}()
 						}),
 					function () {
-						var _v33 = model.role;
-						if (_v33.$ === 'Guest') {
-							var host = _v33.a;
+						var _v36 = model.role;
+						if (_v36.$ === 'Guest') {
+							var host = _v36.a;
 							return $author$project$Ports$toPeer(
 								{
 									peer: host,
@@ -12540,19 +12621,15 @@ var $author$project$Update$update = F2(
 							questions: _Utils_ap(
 								model.questions,
 								_List_fromArray(
-									[model.typedQuestion])),
+									[
+										{duration: model.selectedDuration, question: model.typedQuestion, suggestion: ''}
+									])),
 							typedQuestion: ''
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'QuestionRemoved':
 				var a = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							questions: A2($elm_community$list_extra$List$Extra$remove, a, model.questions)
-						}),
-					$elm$core$Platform$Cmd$none);
+				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			case 'ShowChat':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -18969,13 +19046,13 @@ var $author$project$View$questionToListItem = function (a) {
 		$aforemny$material_components_web_elm$Material$List$Item$config,
 		_List_fromArray(
 			[
-				$elm$html$Html$text(a),
+				$elm$html$Html$text(a.question),
 				A2(
 				$aforemny$material_components_web_elm$Material$List$Item$meta,
 				_List_fromArray(
 					[
 						$elm$html$Html$Events$onClick(
-						$author$project$Types$QuestionRemoved(a))
+						$author$project$Types$QuestionRemoved(a.question))
 					]),
 				_List_fromArray(
 					[
@@ -19356,6 +19433,297 @@ var $author$project$Types$AnswerTyped = function (a) {
 var $aforemny$material_components_web_elm$Material$TextField$filled = function (config_) {
 	return A2($aforemny$material_components_web_elm$Material$TextField$textField, false, config_);
 };
+var $mdgriffith$elm_ui$Internal$Model$OnlyDynamic = F2(
+	function (a, b) {
+		return {$: 'OnlyDynamic', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Internal$Model$StaticRootAndDynamic = F2(
+	function (a, b) {
+		return {$: 'StaticRootAndDynamic', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Internal$Model$AllowHover = {$: 'AllowHover'};
+var $mdgriffith$elm_ui$Internal$Model$Layout = {$: 'Layout'};
+var $mdgriffith$elm_ui$Internal$Model$Rgba = F4(
+	function (a, b, c, d) {
+		return {$: 'Rgba', a: a, b: b, c: c, d: d};
+	});
+var $mdgriffith$elm_ui$Internal$Model$focusDefaultStyle = {
+	backgroundColor: $elm$core$Maybe$Nothing,
+	borderColor: $elm$core$Maybe$Nothing,
+	shadow: $elm$core$Maybe$Just(
+		{
+			blur: 0,
+			color: A4($mdgriffith$elm_ui$Internal$Model$Rgba, 155 / 255, 203 / 255, 1, 1),
+			offset: _Utils_Tuple2(0, 0),
+			size: 3
+		})
+};
+var $mdgriffith$elm_ui$Internal$Model$optionsToRecord = function (options) {
+	var combine = F2(
+		function (opt, record) {
+			switch (opt.$) {
+				case 'HoverOption':
+					var hoverable = opt.a;
+					var _v4 = record.hover;
+					if (_v4.$ === 'Nothing') {
+						return _Utils_update(
+							record,
+							{
+								hover: $elm$core$Maybe$Just(hoverable)
+							});
+					} else {
+						return record;
+					}
+				case 'FocusStyleOption':
+					var focusStyle = opt.a;
+					var _v5 = record.focus;
+					if (_v5.$ === 'Nothing') {
+						return _Utils_update(
+							record,
+							{
+								focus: $elm$core$Maybe$Just(focusStyle)
+							});
+					} else {
+						return record;
+					}
+				default:
+					var renderMode = opt.a;
+					var _v6 = record.mode;
+					if (_v6.$ === 'Nothing') {
+						return _Utils_update(
+							record,
+							{
+								mode: $elm$core$Maybe$Just(renderMode)
+							});
+					} else {
+						return record;
+					}
+			}
+		});
+	var andFinally = function (record) {
+		return {
+			focus: function () {
+				var _v0 = record.focus;
+				if (_v0.$ === 'Nothing') {
+					return $mdgriffith$elm_ui$Internal$Model$focusDefaultStyle;
+				} else {
+					var focusable = _v0.a;
+					return focusable;
+				}
+			}(),
+			hover: function () {
+				var _v1 = record.hover;
+				if (_v1.$ === 'Nothing') {
+					return $mdgriffith$elm_ui$Internal$Model$AllowHover;
+				} else {
+					var hoverable = _v1.a;
+					return hoverable;
+				}
+			}(),
+			mode: function () {
+				var _v2 = record.mode;
+				if (_v2.$ === 'Nothing') {
+					return $mdgriffith$elm_ui$Internal$Model$Layout;
+				} else {
+					var actualMode = _v2.a;
+					return actualMode;
+				}
+			}()
+		};
+	};
+	return andFinally(
+		A3(
+			$elm$core$List$foldr,
+			combine,
+			{focus: $elm$core$Maybe$Nothing, hover: $elm$core$Maybe$Nothing, mode: $elm$core$Maybe$Nothing},
+			options));
+};
+var $mdgriffith$elm_ui$Internal$Model$toHtml = F2(
+	function (mode, el) {
+		switch (el.$) {
+			case 'Unstyled':
+				var html = el.a;
+				return html($mdgriffith$elm_ui$Internal$Model$asEl);
+			case 'Styled':
+				var styles = el.a.styles;
+				var html = el.a.html;
+				return A2(
+					html,
+					mode(styles),
+					$mdgriffith$elm_ui$Internal$Model$asEl);
+			case 'Text':
+				var text = el.a;
+				return $mdgriffith$elm_ui$Internal$Model$textElement(text);
+			default:
+				return $mdgriffith$elm_ui$Internal$Model$textElement('');
+		}
+	});
+var $mdgriffith$elm_ui$Internal$Model$renderRoot = F3(
+	function (optionList, attributes, child) {
+		var options = $mdgriffith$elm_ui$Internal$Model$optionsToRecord(optionList);
+		var embedStyle = function () {
+			var _v0 = options.mode;
+			if (_v0.$ === 'NoStaticStyleSheet') {
+				return $mdgriffith$elm_ui$Internal$Model$OnlyDynamic(options);
+			} else {
+				return $mdgriffith$elm_ui$Internal$Model$StaticRootAndDynamic(options);
+			}
+		}();
+		return A2(
+			$mdgriffith$elm_ui$Internal$Model$toHtml,
+			embedStyle,
+			A4(
+				$mdgriffith$elm_ui$Internal$Model$element,
+				$mdgriffith$elm_ui$Internal$Model$asEl,
+				$mdgriffith$elm_ui$Internal$Model$div,
+				attributes,
+				$mdgriffith$elm_ui$Internal$Model$Unkeyed(
+					_List_fromArray(
+						[child]))));
+	});
+var $mdgriffith$elm_ui$Internal$Model$Colored = F3(
+	function (a, b, c) {
+		return {$: 'Colored', a: a, b: b, c: c};
+	});
+var $mdgriffith$elm_ui$Internal$Model$FontFamily = F2(
+	function (a, b) {
+		return {$: 'FontFamily', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Internal$Model$FontSize = function (a) {
+	return {$: 'FontSize', a: a};
+};
+var $mdgriffith$elm_ui$Internal$Model$SansSerif = {$: 'SansSerif'};
+var $mdgriffith$elm_ui$Internal$Model$Typeface = function (a) {
+	return {$: 'Typeface', a: a};
+};
+var $mdgriffith$elm_ui$Internal$Flag$bgColor = $mdgriffith$elm_ui$Internal$Flag$flag(8);
+var $mdgriffith$elm_ui$Internal$Flag$fontColor = $mdgriffith$elm_ui$Internal$Flag$flag(14);
+var $mdgriffith$elm_ui$Internal$Flag$fontFamily = $mdgriffith$elm_ui$Internal$Flag$flag(5);
+var $mdgriffith$elm_ui$Internal$Flag$fontSize = $mdgriffith$elm_ui$Internal$Flag$flag(4);
+var $mdgriffith$elm_ui$Internal$Model$formatColorClass = function (_v0) {
+	var red = _v0.a;
+	var green = _v0.b;
+	var blue = _v0.c;
+	var alpha = _v0.d;
+	return $mdgriffith$elm_ui$Internal$Model$floatClass(red) + ('-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(green) + ('-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(blue) + ('-' + $mdgriffith$elm_ui$Internal$Model$floatClass(alpha))))));
+};
+var $elm$core$String$toLower = _String_toLower;
+var $elm$core$String$words = _String_words;
+var $mdgriffith$elm_ui$Internal$Model$renderFontClassName = F2(
+	function (font, current) {
+		return _Utils_ap(
+			current,
+			function () {
+				switch (font.$) {
+					case 'Serif':
+						return 'serif';
+					case 'SansSerif':
+						return 'sans-serif';
+					case 'Monospace':
+						return 'monospace';
+					case 'Typeface':
+						var name = font.a;
+						return A2(
+							$elm$core$String$join,
+							'-',
+							$elm$core$String$words(
+								$elm$core$String$toLower(name)));
+					case 'ImportFont':
+						var name = font.a;
+						var url = font.b;
+						return A2(
+							$elm$core$String$join,
+							'-',
+							$elm$core$String$words(
+								$elm$core$String$toLower(name)));
+					default:
+						var name = font.a.name;
+						return A2(
+							$elm$core$String$join,
+							'-',
+							$elm$core$String$words(
+								$elm$core$String$toLower(name)));
+				}
+			}());
+	});
+var $mdgriffith$elm_ui$Internal$Model$rootStyle = function () {
+	var families = _List_fromArray(
+		[
+			$mdgriffith$elm_ui$Internal$Model$Typeface('Open Sans'),
+			$mdgriffith$elm_ui$Internal$Model$Typeface('Helvetica'),
+			$mdgriffith$elm_ui$Internal$Model$Typeface('Verdana'),
+			$mdgriffith$elm_ui$Internal$Model$SansSerif
+		]);
+	return _List_fromArray(
+		[
+			A2(
+			$mdgriffith$elm_ui$Internal$Model$StyleClass,
+			$mdgriffith$elm_ui$Internal$Flag$bgColor,
+			A3(
+				$mdgriffith$elm_ui$Internal$Model$Colored,
+				'bg-' + $mdgriffith$elm_ui$Internal$Model$formatColorClass(
+					A4($mdgriffith$elm_ui$Internal$Model$Rgba, 1, 1, 1, 0)),
+				'background-color',
+				A4($mdgriffith$elm_ui$Internal$Model$Rgba, 1, 1, 1, 0))),
+			A2(
+			$mdgriffith$elm_ui$Internal$Model$StyleClass,
+			$mdgriffith$elm_ui$Internal$Flag$fontColor,
+			A3(
+				$mdgriffith$elm_ui$Internal$Model$Colored,
+				'fc-' + $mdgriffith$elm_ui$Internal$Model$formatColorClass(
+					A4($mdgriffith$elm_ui$Internal$Model$Rgba, 0, 0, 0, 1)),
+				'color',
+				A4($mdgriffith$elm_ui$Internal$Model$Rgba, 0, 0, 0, 1))),
+			A2(
+			$mdgriffith$elm_ui$Internal$Model$StyleClass,
+			$mdgriffith$elm_ui$Internal$Flag$fontSize,
+			$mdgriffith$elm_ui$Internal$Model$FontSize(20)),
+			A2(
+			$mdgriffith$elm_ui$Internal$Model$StyleClass,
+			$mdgriffith$elm_ui$Internal$Flag$fontFamily,
+			A2(
+				$mdgriffith$elm_ui$Internal$Model$FontFamily,
+				A3($elm$core$List$foldl, $mdgriffith$elm_ui$Internal$Model$renderFontClassName, 'font-', families),
+				families))
+		]);
+}();
+var $mdgriffith$elm_ui$Element$layoutWith = F3(
+	function (_v0, attrs, child) {
+		var options = _v0.options;
+		return A3(
+			$mdgriffith$elm_ui$Internal$Model$renderRoot,
+			options,
+			A2(
+				$elm$core$List$cons,
+				$mdgriffith$elm_ui$Internal$Model$htmlClass(
+					A2(
+						$elm$core$String$join,
+						' ',
+						_List_fromArray(
+							[$mdgriffith$elm_ui$Internal$Style$classes.root, $mdgriffith$elm_ui$Internal$Style$classes.any, $mdgriffith$elm_ui$Internal$Style$classes.single]))),
+				_Utils_ap($mdgriffith$elm_ui$Internal$Model$rootStyle, attrs)),
+			child);
+	});
+var $mdgriffith$elm_ui$Element$layout = $mdgriffith$elm_ui$Element$layoutWith(
+	{options: _List_Nil});
+var $mdgriffith$elm_ui$Internal$Model$PaddingStyle = F5(
+	function (a, b, c, d, e) {
+		return {$: 'PaddingStyle', a: a, b: b, c: c, d: d, e: e};
+	});
+var $mdgriffith$elm_ui$Internal$Flag$padding = $mdgriffith$elm_ui$Internal$Flag$flag(2);
+var $mdgriffith$elm_ui$Element$padding = function (x) {
+	var f = x;
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$padding,
+		A5(
+			$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
+			'p-' + $elm$core$String$fromInt(x),
+			f,
+			f,
+			f,
+			f));
+};
 var $aforemny$material_components_web_elm$Material$TextField$setAttributes = F2(
 	function (additionalAttributes, _v0) {
 		var config_ = _v0.a;
@@ -19406,9 +19774,15 @@ var $aforemny$material_components_web_elm$Material$TextField$setValue = F2(
 				config_,
 				{value: value}));
 	});
+var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
+	return {$: 'Text', a: a};
+};
+var $mdgriffith$elm_ui$Element$text = function (content) {
+	return $mdgriffith$elm_ui$Internal$Model$Text(content);
+};
 var $aforemny$material_components_web_elm$Material$Elevation$z8 = $aforemny$material_components_web_elm$Material$Elevation$z(8);
-var $author$project$View$questionCard = F4(
-	function (progress, q, rating, model) {
+var $author$project$View$questionCard = F6(
+	function (progress, q, duration, suggestion, rating, model) {
 		return A2(
 			$aforemny$material_components_web_elm$Material$Card$card,
 			A2(
@@ -19430,7 +19804,7 @@ var $author$project$View$questionCard = F4(
 							_List_fromArray(
 								[
 									function () {
-									var progress_ = A2($elm$core$Basics$max, 0, progress) / $author$project$Shared$questionDuration;
+									var progress_ = A2($elm$core$Basics$max, 0, progress) / A2($elm$core$Maybe$withDefault, 30, duration);
 									return A2(
 										$elm$html$Html$div,
 										_List_fromArray(
@@ -19494,6 +19868,26 @@ var $author$project$View$questionCard = F4(
 																			$elm$core$Maybe$Just(model.typedAnswer),
 																			$aforemny$material_components_web_elm$Material$TextField$config)))))))
 												]));
+									} else {
+										return $elm$html$Html$text('');
+									}
+								}(),
+									function () {
+									if (suggestion.$ === 'Just') {
+										var s = suggestion.a;
+										return A2(
+											$mdgriffith$elm_ui$Element$layout,
+											_List_fromArray(
+												[
+													$mdgriffith$elm_ui$Element$padding(30)
+												]),
+											A2(
+												$mdgriffith$elm_ui$Element$paragraph,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$mdgriffith$elm_ui$Element$text('Suggested answer: ' + s)
+													])));
 									} else {
 										return $elm$html$Html$text('');
 									}
@@ -20031,12 +20425,6 @@ var $aforemny$material_components_web_elm$Material$Button$setOnClick = F2(
 					onClick: $elm$core$Maybe$Just(onClick)
 				}));
 	});
-var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
-	return {$: 'Text', a: a};
-};
-var $mdgriffith$elm_ui$Element$text = function (content) {
-	return $mdgriffith$elm_ui$Internal$Model$Text(content);
-};
 var $author$project$View$quizView = function (model) {
 	return A2(
 		$mdgriffith$elm_ui$Element$column,
@@ -20150,6 +20538,7 @@ var $author$project$View$quizView = function (model) {
 						case 'Question':
 							var due = _v10.a;
 							var q = _v10.b;
+							var duration = _v10.c;
 							return A2(
 								$elm$core$Maybe$withDefault,
 								$mdgriffith$elm_ui$Element$none,
@@ -20157,7 +20546,14 @@ var $author$project$View$quizView = function (model) {
 									$elm$core$Maybe$map,
 									function (time) {
 										return $author$project$View$htmlFill(
-											A4($author$project$View$questionCard, due - time, q, $elm$core$Maybe$Nothing, model));
+											A6(
+												$author$project$View$questionCard,
+												due - time,
+												q,
+												$elm$core$Maybe$Just(duration),
+												$elm$core$Maybe$Nothing,
+												$elm$core$Maybe$Nothing,
+												model));
 									},
 									model.time));
 						case 'Loading':
@@ -20172,7 +20568,7 @@ var $author$project$View$quizView = function (model) {
 								_List_fromArray(
 									[
 										$author$project$View$htmlFill(
-										A4($author$project$View$questionCard, 0, q, $elm$core$Maybe$Nothing, model)),
+										A6($author$project$View$questionCard, 0, q, $elm$core$Maybe$Nothing, $elm$core$Maybe$Nothing, $elm$core$Maybe$Nothing, model)),
 										A2(
 										$mdgriffith$elm_ui$Element$paragraph,
 										_List_Nil,
@@ -20197,7 +20593,14 @@ var $author$project$View$quizView = function (model) {
 										var _v11 = model.role;
 										if (_v11.$ === 'Guest') {
 											return $author$project$View$htmlFill(
-												A4($author$project$View$questionCard, 0, q, $elm$core$Maybe$Nothing, model));
+												A6(
+													$author$project$View$questionCard,
+													0,
+													q.question,
+													$elm$core$Maybe$Nothing,
+													$elm$core$Maybe$Just(q.suggestion),
+													$elm$core$Maybe$Nothing,
+													model));
 										} else {
 											return $mdgriffith$elm_ui$Element$none;
 										}
@@ -20206,7 +20609,7 @@ var $author$project$View$quizView = function (model) {
 										$elm$core$List$map,
 										function (a) {
 											return $author$project$View$htmlFill(
-												A2($author$project$View$ratingCard, a, q));
+												A2($author$project$View$ratingCard, a, q.question));
 										},
 										$elm$core$Dict$toList(peerAnswers))));
 						case 'Feedback':
@@ -20223,10 +20626,12 @@ var $author$project$View$quizView = function (model) {
 								_List_fromArray(
 									[
 										$author$project$View$htmlFill(
-										A4(
+										A6(
 											$author$project$View$questionCard,
 											0,
 											q,
+											$elm$core$Maybe$Nothing,
+											$elm$core$Maybe$Nothing,
 											$elm$core$Maybe$Just(rating),
 											model)),
 										$author$project$View$htmlCenter(
@@ -20631,279 +21036,6 @@ var $aforemny$material_components_web_elm$Material$IconButton$iconButton = F2(
 					}())
 				]));
 	});
-var $mdgriffith$elm_ui$Internal$Model$OnlyDynamic = F2(
-	function (a, b) {
-		return {$: 'OnlyDynamic', a: a, b: b};
-	});
-var $mdgriffith$elm_ui$Internal$Model$StaticRootAndDynamic = F2(
-	function (a, b) {
-		return {$: 'StaticRootAndDynamic', a: a, b: b};
-	});
-var $mdgriffith$elm_ui$Internal$Model$AllowHover = {$: 'AllowHover'};
-var $mdgriffith$elm_ui$Internal$Model$Layout = {$: 'Layout'};
-var $mdgriffith$elm_ui$Internal$Model$Rgba = F4(
-	function (a, b, c, d) {
-		return {$: 'Rgba', a: a, b: b, c: c, d: d};
-	});
-var $mdgriffith$elm_ui$Internal$Model$focusDefaultStyle = {
-	backgroundColor: $elm$core$Maybe$Nothing,
-	borderColor: $elm$core$Maybe$Nothing,
-	shadow: $elm$core$Maybe$Just(
-		{
-			blur: 0,
-			color: A4($mdgriffith$elm_ui$Internal$Model$Rgba, 155 / 255, 203 / 255, 1, 1),
-			offset: _Utils_Tuple2(0, 0),
-			size: 3
-		})
-};
-var $mdgriffith$elm_ui$Internal$Model$optionsToRecord = function (options) {
-	var combine = F2(
-		function (opt, record) {
-			switch (opt.$) {
-				case 'HoverOption':
-					var hoverable = opt.a;
-					var _v4 = record.hover;
-					if (_v4.$ === 'Nothing') {
-						return _Utils_update(
-							record,
-							{
-								hover: $elm$core$Maybe$Just(hoverable)
-							});
-					} else {
-						return record;
-					}
-				case 'FocusStyleOption':
-					var focusStyle = opt.a;
-					var _v5 = record.focus;
-					if (_v5.$ === 'Nothing') {
-						return _Utils_update(
-							record,
-							{
-								focus: $elm$core$Maybe$Just(focusStyle)
-							});
-					} else {
-						return record;
-					}
-				default:
-					var renderMode = opt.a;
-					var _v6 = record.mode;
-					if (_v6.$ === 'Nothing') {
-						return _Utils_update(
-							record,
-							{
-								mode: $elm$core$Maybe$Just(renderMode)
-							});
-					} else {
-						return record;
-					}
-			}
-		});
-	var andFinally = function (record) {
-		return {
-			focus: function () {
-				var _v0 = record.focus;
-				if (_v0.$ === 'Nothing') {
-					return $mdgriffith$elm_ui$Internal$Model$focusDefaultStyle;
-				} else {
-					var focusable = _v0.a;
-					return focusable;
-				}
-			}(),
-			hover: function () {
-				var _v1 = record.hover;
-				if (_v1.$ === 'Nothing') {
-					return $mdgriffith$elm_ui$Internal$Model$AllowHover;
-				} else {
-					var hoverable = _v1.a;
-					return hoverable;
-				}
-			}(),
-			mode: function () {
-				var _v2 = record.mode;
-				if (_v2.$ === 'Nothing') {
-					return $mdgriffith$elm_ui$Internal$Model$Layout;
-				} else {
-					var actualMode = _v2.a;
-					return actualMode;
-				}
-			}()
-		};
-	};
-	return andFinally(
-		A3(
-			$elm$core$List$foldr,
-			combine,
-			{focus: $elm$core$Maybe$Nothing, hover: $elm$core$Maybe$Nothing, mode: $elm$core$Maybe$Nothing},
-			options));
-};
-var $mdgriffith$elm_ui$Internal$Model$toHtml = F2(
-	function (mode, el) {
-		switch (el.$) {
-			case 'Unstyled':
-				var html = el.a;
-				return html($mdgriffith$elm_ui$Internal$Model$asEl);
-			case 'Styled':
-				var styles = el.a.styles;
-				var html = el.a.html;
-				return A2(
-					html,
-					mode(styles),
-					$mdgriffith$elm_ui$Internal$Model$asEl);
-			case 'Text':
-				var text = el.a;
-				return $mdgriffith$elm_ui$Internal$Model$textElement(text);
-			default:
-				return $mdgriffith$elm_ui$Internal$Model$textElement('');
-		}
-	});
-var $mdgriffith$elm_ui$Internal$Model$renderRoot = F3(
-	function (optionList, attributes, child) {
-		var options = $mdgriffith$elm_ui$Internal$Model$optionsToRecord(optionList);
-		var embedStyle = function () {
-			var _v0 = options.mode;
-			if (_v0.$ === 'NoStaticStyleSheet') {
-				return $mdgriffith$elm_ui$Internal$Model$OnlyDynamic(options);
-			} else {
-				return $mdgriffith$elm_ui$Internal$Model$StaticRootAndDynamic(options);
-			}
-		}();
-		return A2(
-			$mdgriffith$elm_ui$Internal$Model$toHtml,
-			embedStyle,
-			A4(
-				$mdgriffith$elm_ui$Internal$Model$element,
-				$mdgriffith$elm_ui$Internal$Model$asEl,
-				$mdgriffith$elm_ui$Internal$Model$div,
-				attributes,
-				$mdgriffith$elm_ui$Internal$Model$Unkeyed(
-					_List_fromArray(
-						[child]))));
-	});
-var $mdgriffith$elm_ui$Internal$Model$Colored = F3(
-	function (a, b, c) {
-		return {$: 'Colored', a: a, b: b, c: c};
-	});
-var $mdgriffith$elm_ui$Internal$Model$FontFamily = F2(
-	function (a, b) {
-		return {$: 'FontFamily', a: a, b: b};
-	});
-var $mdgriffith$elm_ui$Internal$Model$FontSize = function (a) {
-	return {$: 'FontSize', a: a};
-};
-var $mdgriffith$elm_ui$Internal$Model$SansSerif = {$: 'SansSerif'};
-var $mdgriffith$elm_ui$Internal$Model$Typeface = function (a) {
-	return {$: 'Typeface', a: a};
-};
-var $mdgriffith$elm_ui$Internal$Flag$bgColor = $mdgriffith$elm_ui$Internal$Flag$flag(8);
-var $mdgriffith$elm_ui$Internal$Flag$fontColor = $mdgriffith$elm_ui$Internal$Flag$flag(14);
-var $mdgriffith$elm_ui$Internal$Flag$fontFamily = $mdgriffith$elm_ui$Internal$Flag$flag(5);
-var $mdgriffith$elm_ui$Internal$Flag$fontSize = $mdgriffith$elm_ui$Internal$Flag$flag(4);
-var $mdgriffith$elm_ui$Internal$Model$formatColorClass = function (_v0) {
-	var red = _v0.a;
-	var green = _v0.b;
-	var blue = _v0.c;
-	var alpha = _v0.d;
-	return $mdgriffith$elm_ui$Internal$Model$floatClass(red) + ('-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(green) + ('-' + ($mdgriffith$elm_ui$Internal$Model$floatClass(blue) + ('-' + $mdgriffith$elm_ui$Internal$Model$floatClass(alpha))))));
-};
-var $elm$core$String$toLower = _String_toLower;
-var $elm$core$String$words = _String_words;
-var $mdgriffith$elm_ui$Internal$Model$renderFontClassName = F2(
-	function (font, current) {
-		return _Utils_ap(
-			current,
-			function () {
-				switch (font.$) {
-					case 'Serif':
-						return 'serif';
-					case 'SansSerif':
-						return 'sans-serif';
-					case 'Monospace':
-						return 'monospace';
-					case 'Typeface':
-						var name = font.a;
-						return A2(
-							$elm$core$String$join,
-							'-',
-							$elm$core$String$words(
-								$elm$core$String$toLower(name)));
-					case 'ImportFont':
-						var name = font.a;
-						var url = font.b;
-						return A2(
-							$elm$core$String$join,
-							'-',
-							$elm$core$String$words(
-								$elm$core$String$toLower(name)));
-					default:
-						var name = font.a.name;
-						return A2(
-							$elm$core$String$join,
-							'-',
-							$elm$core$String$words(
-								$elm$core$String$toLower(name)));
-				}
-			}());
-	});
-var $mdgriffith$elm_ui$Internal$Model$rootStyle = function () {
-	var families = _List_fromArray(
-		[
-			$mdgriffith$elm_ui$Internal$Model$Typeface('Open Sans'),
-			$mdgriffith$elm_ui$Internal$Model$Typeface('Helvetica'),
-			$mdgriffith$elm_ui$Internal$Model$Typeface('Verdana'),
-			$mdgriffith$elm_ui$Internal$Model$SansSerif
-		]);
-	return _List_fromArray(
-		[
-			A2(
-			$mdgriffith$elm_ui$Internal$Model$StyleClass,
-			$mdgriffith$elm_ui$Internal$Flag$bgColor,
-			A3(
-				$mdgriffith$elm_ui$Internal$Model$Colored,
-				'bg-' + $mdgriffith$elm_ui$Internal$Model$formatColorClass(
-					A4($mdgriffith$elm_ui$Internal$Model$Rgba, 1, 1, 1, 0)),
-				'background-color',
-				A4($mdgriffith$elm_ui$Internal$Model$Rgba, 1, 1, 1, 0))),
-			A2(
-			$mdgriffith$elm_ui$Internal$Model$StyleClass,
-			$mdgriffith$elm_ui$Internal$Flag$fontColor,
-			A3(
-				$mdgriffith$elm_ui$Internal$Model$Colored,
-				'fc-' + $mdgriffith$elm_ui$Internal$Model$formatColorClass(
-					A4($mdgriffith$elm_ui$Internal$Model$Rgba, 0, 0, 0, 1)),
-				'color',
-				A4($mdgriffith$elm_ui$Internal$Model$Rgba, 0, 0, 0, 1))),
-			A2(
-			$mdgriffith$elm_ui$Internal$Model$StyleClass,
-			$mdgriffith$elm_ui$Internal$Flag$fontSize,
-			$mdgriffith$elm_ui$Internal$Model$FontSize(20)),
-			A2(
-			$mdgriffith$elm_ui$Internal$Model$StyleClass,
-			$mdgriffith$elm_ui$Internal$Flag$fontFamily,
-			A2(
-				$mdgriffith$elm_ui$Internal$Model$FontFamily,
-				A3($elm$core$List$foldl, $mdgriffith$elm_ui$Internal$Model$renderFontClassName, 'font-', families),
-				families))
-		]);
-}();
-var $mdgriffith$elm_ui$Element$layoutWith = F3(
-	function (_v0, attrs, child) {
-		var options = _v0.options;
-		return A3(
-			$mdgriffith$elm_ui$Internal$Model$renderRoot,
-			options,
-			A2(
-				$elm$core$List$cons,
-				$mdgriffith$elm_ui$Internal$Model$htmlClass(
-					A2(
-						$elm$core$String$join,
-						' ',
-						_List_fromArray(
-							[$mdgriffith$elm_ui$Internal$Style$classes.root, $mdgriffith$elm_ui$Internal$Style$classes.any, $mdgriffith$elm_ui$Internal$Style$classes.single]))),
-				_Utils_ap($mdgriffith$elm_ui$Internal$Model$rootStyle, attrs)),
-			child);
-	});
-var $mdgriffith$elm_ui$Element$layout = $mdgriffith$elm_ui$Element$layoutWith(
-	{options: _List_Nil});
 var $mdgriffith$elm_ui$Internal$Model$Max = F2(
 	function (a, b) {
 		return {$: 'Max', a: a, b: b};
@@ -20919,24 +21051,6 @@ var $aforemny$material_components_web_elm$Material$Button$outlined = F2(
 	function (config_, label) {
 		return A3($aforemny$material_components_web_elm$Material$Button$button, $aforemny$material_components_web_elm$Material$Button$Outlined, config_, label);
 	});
-var $mdgriffith$elm_ui$Internal$Model$PaddingStyle = F5(
-	function (a, b, c, d, e) {
-		return {$: 'PaddingStyle', a: a, b: b, c: c, d: d, e: e};
-	});
-var $mdgriffith$elm_ui$Internal$Flag$padding = $mdgriffith$elm_ui$Internal$Flag$flag(2);
-var $mdgriffith$elm_ui$Element$padding = function (x) {
-	var f = x;
-	return A2(
-		$mdgriffith$elm_ui$Internal$Model$StyleClass,
-		$mdgriffith$elm_ui$Internal$Flag$padding,
-		A5(
-			$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
-			'p-' + $elm$core$String$fromInt(x),
-			f,
-			f,
-			f,
-			f));
-};
 var $aforemny$material_components_web_elm$Material$TopAppBar$Regular = {$: 'Regular'};
 var $aforemny$material_components_web_elm$Material$TopAppBar$denseCs = function (_v0) {
 	var dense = _v0.a.dense;
@@ -21507,4 +21621,4 @@ var $author$project$View$view = function (model) {
 };
 var $author$project$Main$main = $elm$browser$Browser$document(
 	{init: $author$project$Types$init, subscriptions: $author$project$Main$subscriptions, update: $author$project$Update$update, view: $author$project$View$view});
-_Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$string)({"versions":{"elm":"0.19.1"},"types":{"message":"Types.Msg","aliases":{"Types.Answer":{"args":[],"type":"String.String"},"Types.Peer":{"args":[],"type":"String.String"},"Types.Question":{"args":[],"type":"String.String"},"Types.Rating":{"args":[],"type":"Basics.Int"},"Types.RatingInfo":{"args":[],"type":"Dict.Dict Types.Peer (Dict.Dict Types.Peer Types.Answer)"},"Types.Leaderboard":{"args":[],"type":"Dict.Dict Types.Peer Basics.Int"}},"unions":{"Types.Msg":{"args":[],"tags":{"FromPeer":["Types.Peer","Json.Encode.Value"],"ToPeer":["Types.Peer","Types.PeerMsg"],"SetName":["String.String"],"HostTyped":["String.String"],"QuizJoinRequested":[],"QuizHosted":[],"ShowDrawer":[],"HideDrawer":[],"ShowHome":[],"QuestionStarted":["Basics.Int","Types.Question"],"AnswerFocused":[],"AnswerTyped":["String.String"],"Rated":["Types.Rating","Types.Peer","Types.Question"],"ShowChat":[],"ChatTyped":["String.String"],"ChatSubmitted":[],"ShowQuestions":[],"QuestionTyped":["String.String"],"QuestionSubmitted":[],"QuestionRemoved":["String.String"],"NextQuestionClick":[],"AnswerCollectionEnded":["Types.Question"],"RatingAllocated":["Types.Question","Types.RatingInfo"],"Tick":["Basics.Int"],"NoOp":[]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Types.PeerMsg":{"args":[],"tags":{"Joined":[],"JoinConfirmed":[],"StartQuestion":["String.String"],"QuestionAnswered":["Types.Question","Types.Answer"],"RatingStarted":["Types.Question","Dict.Dict Types.Peer Types.Answer"],"RatingSent":["Types.Rating","Types.Peer","Types.Question"],"FeedbackReceived":["Types.Question","Types.Leaderboard","Basics.Int"],"QuizFinished":["Types.Leaderboard","Maybe.Maybe String.String"],"ChatSent":["String.String"],"ChatForwarded":["Types.Peer","String.String"],"Disconnected":[]}},"String.String":{"args":[],"tags":{"String":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}}}}})}});}(this));
+_Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$string)({"versions":{"elm":"0.19.1"},"types":{"message":"Types.Msg","aliases":{"Types.Answer":{"args":[],"type":"String.String"},"Types.Peer":{"args":[],"type":"String.String"},"Types.Question":{"args":[],"type":"String.String"},"Types.Rating":{"args":[],"type":"Basics.Int"},"Types.RatingInfo":{"args":[],"type":"Dict.Dict Types.Peer (Dict.Dict Types.Peer Types.Answer)"},"Types.Leaderboard":{"args":[],"type":"Dict.Dict Types.Peer Basics.Int"},"Types.QuestionConfig":{"args":[],"type":"{ question : String.String, duration : Basics.Int, suggestion : String.String }"}},"unions":{"Types.Msg":{"args":[],"tags":{"FromPeer":["Types.Peer","Json.Encode.Value"],"ToPeer":["Types.Peer","Types.PeerMsg"],"SetName":["String.String"],"HostTyped":["String.String"],"QuizJoinRequested":[],"QuizHosted":[],"ShowDrawer":[],"HideDrawer":[],"ShowHome":[],"QuestionStarted":["Basics.Int","Types.Question","Basics.Int"],"AnswerFocused":[],"AnswerTyped":["String.String"],"Rated":["Types.Rating","Types.Peer","Types.Question"],"ShowChat":[],"ChatTyped":["String.String"],"ChatSubmitted":[],"ShowQuestions":[],"QuestionTyped":["String.String"],"QuestionSubmitted":[],"QuestionRemoved":["String.String"],"NextQuestionClick":[],"AnswerCollectionEnded":["Types.Question"],"RatingAllocated":["Types.Question","Types.RatingInfo"],"Tick":["Basics.Int"],"NoOp":[]}},"Dict.Dict":{"args":["k","v"],"tags":{"RBNode_elm_builtin":["Dict.NColor","k","v","Dict.Dict k v","Dict.Dict k v"],"RBEmpty_elm_builtin":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"Types.PeerMsg":{"args":[],"tags":{"Joined":[],"JoinConfirmed":[],"StartQuestion":["String.String","Basics.Int"],"QuestionAnswered":["Types.Question","Types.Answer"],"RatingStarted":["Types.QuestionConfig","Dict.Dict Types.Peer Types.Answer"],"RatingSent":["Types.Rating","Types.Peer","Types.Question"],"FeedbackReceived":["Types.Question","Types.Leaderboard","Basics.Int"],"QuizFinished":["Types.Leaderboard","Maybe.Maybe String.String"],"ChatSent":["String.String"],"ChatForwarded":["Types.Peer","String.String"],"Disconnected":[]}},"String.String":{"args":[],"tags":{"String":[]}},"Json.Encode.Value":{"args":[],"tags":{"Value":[]}},"Maybe.Maybe":{"args":["a"],"tags":{"Just":["a"],"Nothing":[]}},"Dict.NColor":{"args":[],"tags":{"Red":[],"Black":[]}}}}})}});}(this));

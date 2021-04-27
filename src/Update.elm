@@ -38,9 +38,9 @@ update msg model =
                 ( Host h guests, Ok (QuestionAnswered q a) ) ->
                     ( { model | role = Host (updateHistory peer q a h) guests }, Cmd.none )
 
-                ( _, Ok (StartQuestion q) ) ->
+                ( _, Ok (StartQuestion q duration) ) ->
                     ( model
-                    , Task.perform (\t -> QuestionStarted (Time.posixToMillis t + questionDuration) q) Time.now
+                    , Task.perform (\t -> QuestionStarted (Time.posixToMillis t + duration * 1000) q (duration * 1000)) Time.now
                     )
 
                 ( Guest _, Ok (RatingStarted q peerAnswers) ) ->
@@ -82,7 +82,7 @@ update msg model =
                     )
 
                 ( _, Ok (QuizFinished l m) ) ->
-                    ( { model | quiz = Finished l m}, Cmd.none )
+                    ( { model | quiz = Finished l m }, Cmd.none )
 
                 ( Guest _, Ok (FeedbackReceived q l rating) ) ->
                     ( { model | quiz = Feedback q l rating }, Cmd.none )
@@ -147,7 +147,7 @@ update msg model =
                     let
                         nextQuestion =
                             model.questions
-                                |> List.filterNot (\a -> Dict.member a history)
+                                |> List.filterNot (\a -> Dict.member a.question history)
                                 |> List.head
                     in
                     case nextQuestion of
@@ -158,7 +158,7 @@ update msg model =
                                     (\guest ->
                                         toPeer
                                             { peer = guest
-                                            , value = encodeTypesPeerMsg (StartQuestion q)
+                                            , value = encodeTypesPeerMsg (StartQuestion q.question q.duration)
                                             }
                                     )
                                     (model.name :: guests)
@@ -182,9 +182,9 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        QuestionStarted due question ->
+        QuestionStarted due question duration ->
             ( { model
-                | quiz = Question due question
+                | quiz = Question due question duration
                 , typedAnswer = ""
               }
             , Process.sleep 100
@@ -194,7 +194,7 @@ update msg model =
 
         Tick time ->
             case model.quiz of
-                Question due q ->
+                Question due q duratio_ ->
                     if time >= due then
                         case model.role of
                             Guest host ->
@@ -253,18 +253,28 @@ update msg model =
                     ( model, Cmd.none )
 
         RatingAllocated q allocation_ ->
-            ( { model | quiz = Rating q Dict.empty }
-            , Cmd.batch
-                (List.map
-                    (\( peer, answers ) ->
-                        toPeer
-                            { peer = peer
-                            , value = encodeTypesPeerMsg (RatingStarted q answers)
-                            }
+            case model.role of
+                Host h _ ->
+                    let
+                        qs =
+                            List.find (\{ question } -> question == q) model.questions
+                                |> Maybe.withDefault { question = q, duration = 0, suggestion = "" }
+                    in
+                    ( { model | quiz = Rating qs Dict.empty }
+                    , Cmd.batch
+                        (List.map
+                            (\( peer, answers ) ->
+                                toPeer
+                                    { peer = peer
+                                    , value = encodeTypesPeerMsg (RatingStarted qs answers)
+                                    }
+                            )
+                            (Dict.toList allocation_)
+                        )
                     )
-                    (Dict.toList allocation_)
-                )
-            )
+
+                _ ->
+                    ( model, Cmd.none )
 
         AnswerFocused ->
             ( model
@@ -301,14 +311,21 @@ update msg model =
         QuestionSubmitted ->
             ( { model
                 | typedQuestion = ""
-                , questions = model.questions ++ [ model.typedQuestion ]
+                , questions =
+                    model.questions
+                        ++ [ { question = model.typedQuestion
+                             , duration = model.selectedDuration
+                             , suggestion = ""
+                             }
+                           ]
               }
             , Cmd.none
             )
 
         QuestionRemoved a ->
-            ( { model | questions = List.remove a model.questions }, Cmd.none )
+            ( model, Cmd.none )
 
+        -- ( { model | questions = List.remove a model.questions }, Cmd.none )
         ShowChat ->
             ( { model | page = ChatPage, drawerShown = False }, scrollDown () )
 
@@ -407,14 +424,12 @@ ratingCompleted q h =
                 |> Maybe.withDefault Dict.empty
 
         nAnswers =
-            Debug.log "nAnswers" (Dict.size answers)
+            Dict.size answers
 
         nRatings =
-            Debug.log "nRatings"
-                (Dict.toList answers
-                    |> List.concatMap (\( _, a ) -> Dict.values a.ratings)
-                    |> List.length
-                )
+            Dict.toList answers
+                |> List.concatMap (\( _, a ) -> Dict.values a.ratings)
+                |> List.length
     in
     nRatings >= (nGraders nAnswers * nAnswers)
 
