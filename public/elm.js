@@ -10587,14 +10587,11 @@ var $author$project$Types$NotSelected = {$: 'NotSelected'};
 var $author$project$Types$NotStarted = {$: 'NotStarted'};
 var $author$project$Questions$questionsAndSuggestions = _List_fromArray(
 	[
-		{duration: 40, question: 'What is the difference between validity and truth?', suggestion: 'Validity is about arguments, truth about sentences; or: a valid argument does not necessarily have a true conclusion.'},
-		{duration: 40, question: 'Give an example of a tautology!', suggestion: 'There are many! For example, p or (not p); p iff (not (not p)); ...'},
-		{duration: 40, question: 'Name a formula that is logically equivalent to \'p implies q\'!', suggestion: 'For example, (not q) implies (not p); not (not (p implies q)); ...'},
-		{duration: 30, question: 'How do you read V |= p?', suggestion: 'There are three correct answers: V makes p true; V satisfies p; V is a model of p. (One of them is enough for full points here.)'},
-		{duration: 30, question: 'Give 2 desirable properties of a proof system!', suggestion: 'Soundness and completeness. (Both should be named for full points.)'},
-		{duration: 40, question: 'Let\'s see what you have learned: What is the difference between validity and truth?', suggestion: 'Validity is about arguments, truth about sentences; or: a valid argument does not necessarily have a true conclusion.'},
-		{duration: 40, question: 'One more revision: Name a formula that is logically equivalent to \'p implies q\'!', suggestion: 'For example, (not q) implies (not p); not (not (p implies q)); ...'},
-		{duration: 60, question: 'How many different possible logical operations with two arguments are there?', suggestion: '16. The two arguments create 2*2=4 situations to be considered, and an operator could assign either true or false (2 options) to any of these 4 situations, so there are 2^4=16 possible operators.'}
+		{duration: 30, question: 'What are the translations of \'epistēmē\' and \'dýnamis\' into English, respectively? (Just guess!)', suggestion: 'epistēmē = knowledge, and dýnamis = power, ability. (Knowing one of hese should give full points.)'},
+		{duration: 40, question: 'What is the difference between knowledge and belief?', suggestion: 'Traditionally, knowledge is said to be \'justified true belief\' (JTB). In the context of logic, it is most important that it is \'true belief\'. There may also be plausible additional criteria.'},
+		{duration: 30, question: 'What does it mean for a fact to be logically \'contingent\'?', suggestion: 'It is possible, but not necessary.'},
+		{duration: 30, question: 'Give an equivalent formula to: \'It is not possible that p.\'', suggestion: 'For example: It is necessary that not p; ...'},
+		{duration: 30, question: 'How do we write that p will be the case after performing action a exactly 5 times?', suggestion: '<a;a;a;a;a> p'}
 	]);
 var $author$project$Types$init = function (name) {
 	return _Utils_Tuple2(

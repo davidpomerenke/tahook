@@ -6,12 +6,12 @@ var app = Elm.Main.init({
     node: document.getElementById('myapp'),
     flags: name
 })
-const peerConfig = {
-    host: 'tahook.ew.r.appspot.com',
-    secure: true,
-    port: 9000,
-    path: '/'
-}
+// const peerConfig = {
+//     host: 'tahook.ew.r.appspot.com',
+//     secure: true,
+//     port: 9000,
+//     path: '/'
+// }
 const namespace = 'tahook '
 const connect = name => {
     var connections = {}
